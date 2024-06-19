@@ -1,0 +1,4 @@
+__pycache__/
+.libtest
+.libplugindev
+.venv
