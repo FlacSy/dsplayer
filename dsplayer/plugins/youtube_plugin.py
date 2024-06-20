@@ -17,6 +17,9 @@ class YoutubePlugin(PluginInterface):
     def get_url_paterns(self) -> list:
         return self.url_patterns
 
+    def get_plugin_name(self) -> str:
+        return self.name
+
     def search(self, url: str) -> Dict[str, Any]:
         ydl_opts = {
             'format': 'bestaudio/best'
@@ -37,4 +40,4 @@ class YoutubePlugin(PluginInterface):
                 'artist': artist,
                 'duration': duration
             }
-            return out
+            return [out]

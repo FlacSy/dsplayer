@@ -1,16 +1,23 @@
 import re
+import spotipy
 import requests
 from yt_dlp import YoutubeDL
 from typing import Dict, Any
-from bs4 import BeautifulSoup
-from dsplayer.plugin_system.plugin_interface import PluginInterface
+from spotipy.oauth2 import SpotifyClientCredentials
 from dsplayer.utils.user_agent import get_random_user_agent
+from dsplayer.plugin_system.plugin_interface import PluginInterface
+
 
 class SpotifyPlugin(PluginInterface):
     def __init__(self):
         self.name = "Spotify"
-        self.url_patterns = [r"https:\/\/open\.spotify\.com\/track\/[a-zA-Z0-9_-]+"]
-
+        self.url_patterns = [r"https:\/\/open\.spotify\.com\/.*"]
+        self.sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
+            client_id="92136b939d6d435e854780b1c90955a8",
+            client_secret="150a4bc5afee4cba8c85495c91691a27"
+            )
+        )
+        
     def on_plugin_load(self) -> Any:
         print(f"Plugin '{self.name}' loaded.")
 
@@ -20,19 +27,35 @@ class SpotifyPlugin(PluginInterface):
     def get_url_paterns(self) -> list:
         return self.url_patterns
 
+    def get_plugin_name(self) -> str:
+        return self.name
+
     def search(self, data: str) -> Dict[str, Any]:
-        response = requests.get(data)
+        if "track" in data:
+            return [self._search_track(data)]
+        elif "playlist" in data:
+            return self._search_playlist(data)
+    
+    def _search_playlist(self, data: str) -> list[Dict[str, Any]]:
+        spotify_data = self.sp.playlist(data)
+        spotify_urls = [item['track']['external_urls']['spotify'] for item in spotify_data['tracks']['items']]
 
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        track_name = soup.title.get_text(strip=True).split(' - ')[0]
-        artist_name = soup.find('meta', {'name': 'music:musician_description'}).get('content')
-        track_image = soup.find('meta', {'property': 'og:image'}).get('content')
+        track_info_list = []
 
-        url = self._search_by_query(f"{track_name} {artist_name}")
+        for url in spotify_urls:
+            track_info_list.append(self._search_track(url))
+
+        return track_info_list
+
+    def _search_track(self, data: str) -> list[Dict[str, Any]]:
+        spotify_data = self.sp.track(data)
+        artist_name = spotify_data['artists'][0]['name']
+        track_name = spotify_data['name']
+        track_image = spotify_data['album']['images'][0]['url']
+        url = self._search_by_query(f"{artist_name} {track_name}")
         audio_url, duration = self._search_by_url(url)
 
-        out = {
+        track_info_list = {
             'url': audio_url,
             'thumbnail_url': track_image,
             'title': track_name,
@@ -40,7 +63,7 @@ class SpotifyPlugin(PluginInterface):
             'duration': duration
         }
 
-        return out
+        return track_info_list
 
     def _search_by_query(self, query: str):
         headers: dict = {"User-Agent": get_random_user_agent()}

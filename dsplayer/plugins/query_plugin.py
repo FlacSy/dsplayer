@@ -20,6 +20,9 @@ class QueryPlugin(PluginInterface):
     def get_url_paterns(self) -> list:
         return self.url_patterns
 
+    def get_plugin_name(self) -> str:
+        return self.name
+
     def search(self, query: str):
         headers: dict = {"User-Agent": get_random_user_agent()}
 
@@ -53,11 +56,12 @@ class QueryPlugin(PluginInterface):
             artist = info.get('artist')
             duration = info.get('duration')
 
-            out: Dict[str, Any] = {
+            track_info_list = [{
                 'url': audio_url,
                 'thumbnail_url': thumbnail_url,
                 'title': title,
                 'artist': artist,
                 'duration': duration
-            }
-            return out
+            }]
+
+            return track_info_list

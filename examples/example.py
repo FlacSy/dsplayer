@@ -3,6 +3,7 @@ from dsplayer.player_system.player import Player
 import disnake
 from disnake.ext import commands
 import logging
+from typing import Dict
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -11,10 +12,10 @@ intents = disnake.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 plugin_loader = PluginLoader()
-players = {}
+players: Dict[int, Player] = {}
 
-@bot.slash_command(description="Play a track from YouTube.")
-async def play(inter: disnake.ApplicationCommandInteraction, query: str):
+@bot.slash_command()
+async def play(inter: disnake.ApplicationCommandInteraction, query: str) -> None:
     await inter.response.defer()
     voice_channel = inter.author.voice.channel
 
@@ -22,24 +23,36 @@ async def play(inter: disnake.ApplicationCommandInteraction, query: str):
         player = players[inter.guild.id]
         player.voice_channel = voice_channel
     else:
-        player = Player(voice_channel, bot)
+        player = Player(
+            voice_channel=voice_channel,
+            plugin_loader=plugin_loader,
+            bot=bot, 
+            FFMPEG_OPTIONS={
+                'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 
+                'options': '-vn'
+            },
+            deaf=True
+        )
         players[inter.guild.id] = player
 
     if not player.is_connected():
         await player.connect()
 
-    track_info = player.find_track_info(plugin_loader, query)
-    if track_info:
-        await player.add_and_play(track_info)
-        if player.queue.is_empty():
-            await inter.edit_original_response(content=f'Now playing: {track_info["title"]}') 
-        else:
-            await inter.edit_original_response(content=f'Added to queue: {track_info["title"]}')
+    track_info_list = player.find_track_info(plugin_loader, query)
+    if track_info_list:
+        for track_info in track_info_list:
+            await player.add_and_play(track_info)
+            embed = disnake.Embed(title=track_info['title'], url=query)
+            embed.add_field(name=track_info['title'], value=track_info['artist'])
+            formatted_duration = divmod(track_info['duration'], 60)
+            embed.add_field(name='Duration', value=f'{formatted_duration[0]}:{formatted_duration[1]}')
+            embed.set_image(url=track_info['thumbnail_url'])
+            await inter.edit_original_response(embed=embed)
     else:
         await inter.edit_original_response(content='Track not found.')
 
 @bot.slash_command(description="Pause the current track.")
-async def pause(inter: disnake.ApplicationCommandInteraction):
+async def pause(inter: disnake.ApplicationCommandInteraction) -> None:
     if inter.guild.id in players:
         player = players[inter.guild.id]
         if player.is_playing():
@@ -51,7 +64,7 @@ async def pause(inter: disnake.ApplicationCommandInteraction):
         await inter.response.send_message("Player is not connected.")
 
 @bot.slash_command(description="Resume the paused track.")
-async def resume(inter: disnake.ApplicationCommandInteraction):
+async def resume(inter: disnake.ApplicationCommandInteraction) -> None:
     if inter.guild.id in players:
         player = players[inter.guild.id]
         if player.voice_client.is_paused():
@@ -63,7 +76,7 @@ async def resume(inter: disnake.ApplicationCommandInteraction):
         await inter.response.send_message("Player is not connected.")
 
 @bot.slash_command(description="Skip the current track.")
-async def skip(inter: disnake.ApplicationCommandInteraction):
+async def skip(inter: disnake.ApplicationCommandInteraction) -> None:
     if inter.guild.id in players:
         player = players[inter.guild.id]
         if player.is_playing():
@@ -75,7 +88,7 @@ async def skip(inter: disnake.ApplicationCommandInteraction):
         await inter.response.send_message("Player is not connected.")
 
 @bot.slash_command(description="Show the current queue.")
-async def queue(inter: disnake.ApplicationCommandInteraction):
+async def queue(inter: disnake.ApplicationCommandInteraction) -> None:
     if inter.guild.id in players:
         player = players[inter.guild.id]
         queue = player.queue.get_queue()
@@ -88,7 +101,7 @@ async def queue(inter: disnake.ApplicationCommandInteraction):
         await inter.response.send_message("Player is not connected.")
 
 @bot.slash_command(description="Clear the queue.")
-async def clear(inter: disnake.ApplicationCommandInteraction):
+async def clear(inter: disnake.ApplicationCommandInteraction) -> None:
     if inter.guild.id in players:
         player = players[inter.guild.id]
         player.queue.clear()
@@ -97,8 +110,8 @@ async def clear(inter: disnake.ApplicationCommandInteraction):
         await inter.response.send_message("Player is not connected.")
 
 @bot.event
-async def on_ready():
+async def on_ready() -> None:
     logger.info(f'{bot.user} has connected to Discord!')
 
 if __name__ == '__main__':
-    bot.run('YOUR_BOT_TOKEN')
+    bot.run('TOKEN')

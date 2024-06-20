@@ -13,7 +13,12 @@ class PluginInterface(ABC):
         pass
 
     @abstractmethod
-    def search(self, data: str) -> Dict[str, Any]:
+    def get_plugin_name(self) -> str:
+        """Возвращает имя плагина"""
+        pass
+
+    @abstractmethod
+    def search(self, data: str) -> List[Dict[str, Any]]:
         """Ищет трек по запросу или url и возвращает информацию о треке"""
         pass
 
