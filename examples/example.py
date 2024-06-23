@@ -42,12 +42,12 @@ async def play(inter: disnake.ApplicationCommandInteraction, query: str) -> None
     if track_info_list:
         for track_info in track_info_list:
             await player.add_and_play(track_info)
-            embed = disnake.Embed(title=track_info['title'], url=query)
+            embed = disnake.Embed(title=f"Added to the queue: {track_info['title']}")
             embed.add_field(name=track_info['title'], value=track_info['artist'])
             formatted_duration = divmod(track_info['duration'], 60)
             embed.add_field(name='Duration', value=f'{formatted_duration[0]}:{formatted_duration[1]}')
             embed.set_image(url=track_info['thumbnail_url'])
-            await inter.edit_original_response(embed=embed)
+            await inter.send(embed=embed)
     else:
         await inter.edit_original_response(content='Track not found.')
 
@@ -56,7 +56,7 @@ async def pause(inter: disnake.ApplicationCommandInteraction) -> None:
     if inter.guild.id in players:
         player = players[inter.guild.id]
         if player.is_playing():
-            player.voice_client.pause()
+            await player.pause()
             await inter.response.send_message("Track paused.")
         else:
             await inter.response.send_message("No track is currently playing.")
@@ -68,7 +68,7 @@ async def resume(inter: disnake.ApplicationCommandInteraction) -> None:
     if inter.guild.id in players:
         player = players[inter.guild.id]
         if player.voice_client.is_paused():
-            player.voice_client.resume()
+            await player.resume()
             await inter.response.send_message("Track resumed.")
         else:
             await inter.response.send_message("No track is currently paused.")
@@ -80,7 +80,7 @@ async def skip(inter: disnake.ApplicationCommandInteraction) -> None:
     if inter.guild.id in players:
         player = players[inter.guild.id]
         if player.is_playing():
-            player.voice_client.stop()
+            await player.skip()
             await inter.response.send_message("Track skipped.")
         else:
             await inter.response.send_message("No track is currently playing.")

@@ -10,18 +10,25 @@ class QueryPlugin(PluginInterface):
     def __init__(self):
         self.name = "Query"
         self.url_patterns = []
-
-    def on_plugin_load(self) -> Any:
+        self.settings = {}
+        
+    def on_plugin_load(self) -> None:
         print(f"Plugin '{self.name}' loaded.")
 
-    def on_plugin_unload(self) -> Any:
+    def on_plugin_unload(self) -> None:
         print(f"Plugin '{self.name}' unloaded.")
 
-    def get_url_paterns(self) -> list:
+    def get_url_patterns(self) -> list:
         return self.url_patterns
 
     def get_plugin_name(self) -> str:
         return self.name
+
+    def get_settings(self) -> Dict[str, Any]:
+        return self.settings
+
+    def update_settings(self, settings: Dict[str, Any]) -> None:
+        self.settings.update(settings)
 
     def search(self, query: str):
         headers: dict = {"User-Agent": get_random_user_agent()}

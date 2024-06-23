@@ -34,12 +34,13 @@ class Player:
             track = self.queue.get_next_track()
             if track:
                 try:
-                    if self.FFMPEG_OPTIONS == {}:
-                        self.voice_client.play(disnake.FFmpegPCMAudio(track['url']), after=lambda e: asyncio.run_coroutine_threadsafe(self.play_next(), self.bot.loop))
-                    else:
-                        self.voice_client.play(disnake.FFmpegPCMAudio(track['url'], **self.FFMPEG_OPTIONS), after=lambda e: asyncio.run_coroutine_threadsafe(self.play_next(), self.bot.loop))
-                    
-                    await self.bot.change_presence(activity=disnake.Game(name=track['title']))
+                    if not self.voice_client.is_playing():
+                        if self.FFMPEG_OPTIONS == {}:
+                            self.voice_client.play(disnake.FFmpegPCMAudio(track['url']), after=lambda e: asyncio.run_coroutine_threadsafe(self.play_next(), self.bot.loop))
+                        else:
+                            self.voice_client.play(disnake.FFmpegPCMAudio(track['url'], **self.FFMPEG_OPTIONS), after=lambda e: asyncio.run_coroutine_threadsafe(self.play_next(), self.bot.loop))
+                        
+                        await self.bot.change_presence(activity=disnake.Game(name=track['title']))
                 except Exception as e:
                     raise TrackError(f"Error playing track: {e}")
             else:
@@ -80,11 +81,14 @@ class Player:
     def is_connected(self):
         return self.voice_client is not None and self.voice_client.is_connected()
 
+    def update_plugin_settings(self, plugin_name: str, settings: dict) -> bool:
+        return self.plugin_loader.update_plugin_settings(plugin_name, settings)
+
     def find_track_info(self, plugin_loader: PluginLoader, data: str):
         plugins = plugin_loader.get_plugins()
         if data.startswith('http'):
             for plugin in plugins:
-                patterns = plugin.get_url_paterns()
+                patterns = plugin.get_url_patterns()
                 for pattern in patterns:
                     if re.search(pattern, data):
                         try:
