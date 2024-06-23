@@ -42,11 +42,26 @@ class SpotifyPlugin(PluginInterface):
             return [self._search_track(data)]
         elif "playlist" in data:
             return self._search_playlist(data)
-    
+        elif "artist" in data:
+            return self._search_artist(data)
+        elif "album" in data:
+            return self._search_album(data)
+        
     def _search_playlist(self, data: str):
         spotify_data = self.sp.playlist(data)
         spotify_urls = [item['track']['external_urls']['spotify'] for item in spotify_data['tracks']['items']]
+        for url in spotify_urls:
+            yield self._search_track(url)
 
+    def _search_artist(self, data: str):
+        spotify_data = self.sp.artist_top_tracks(data)
+        spotify_urls = [item['external_urls']['spotify'] for item in spotify_data['tracks']]
+        for url in spotify_urls:
+            yield self._search_track(url)
+    
+    def _search_album(self, data: str):
+        spotify_data = self.sp.album_tracks(data)
+        spotify_urls = [item['external_urls']['spotify'] for item in spotify_data['items']]
         for url in spotify_urls:
             yield self._search_track(url)
 

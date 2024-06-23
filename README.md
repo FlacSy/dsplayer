@@ -119,7 +119,6 @@ class YourPlugin(PluginInterface):
 from dsplayer.plugin_system.plugin_loader import PluginLoader
 
 plugin_loader = PluginLoader()
-plugins = plugin_loader.get_plugins()
 ```
 
 ### Обработка исключений
