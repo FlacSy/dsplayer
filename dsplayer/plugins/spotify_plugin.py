@@ -6,7 +6,7 @@ from typing import Dict, Any
 from spotipy.oauth2 import SpotifyClientCredentials
 from dsplayer.utils.user_agent import get_random_user_agent
 from dsplayer.plugin_system.plugin_interface import PluginInterface
-
+from dsplayer.engines_system.engine_interface import EngineInterface
 
 class SpotifyPlugin(PluginInterface):
     def __init__(self):
@@ -83,24 +83,9 @@ class SpotifyPlugin(PluginInterface):
 
         return track_info
 
-    def _search_by_query(self, query: str):
-        headers: dict = {"User-Agent": get_random_user_agent()}
-
-        response = requests.get(f"https://music.youtube.com/search?q={query}", headers=headers, timeout=None)
-        page: str = response.content.decode("unicode_escape")
-
-        if "consent.youtube.com" in page or "<title>Consent</title>" in page:
-            response = requests.get(f"https://www.youtube.com/results?search_query={query}", headers=headers, timeout=None)
-            page = response.content.decode("unicode_escape")
-
-        trackId_match = re.search('"videoId":"(.*?)"', page)
-        if not trackId_match:
-            return {}
-
-        trackId: str = eval(f"{{{trackId_match.group()}}}")["videoId"]
-        url=f"https://music.youtube.com/watch?v={trackId}"
-
-        return url
+    def _search_by_query(self, query: str, engine: EngineInterface):
+        url = engine.get_url_by_query(query)
+        return url      
 
     def _search_by_url(self, url: str) -> Dict[str, Any]:
         if not isinstance(url, str):

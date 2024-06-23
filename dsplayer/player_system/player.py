@@ -5,9 +5,11 @@ from disnake.ext import commands
 from dsplayer.player_system.queue import Queue
 from dsplayer.plugin_system.plugin_loader import PluginLoader
 from dsplayer.utils.exceptions.lib_exceptions import TrackNotFound, TrackError
+from dsplayer.engines_system.engine_interface import EngineInterface
+from dsplayer.engines_system.ytmusic import YTMusic
 
 class Player:
-    def __init__(self, voice_channel: disnake.VoiceChannel, bot: commands.Bot, plugin_loader: PluginLoader, FFMPEG_OPTIONS: dict = {}, deaf: bool = True):
+    def __init__(self, voice_channel: disnake.VoiceChannel, bot: commands.Bot, plugin_loader: PluginLoader, FFMPEG_OPTIONS: dict = {}, deaf: bool = True, engine: EngineInterface = YTMusic):
         self.queue = Queue()
         self.plugin_loader = plugin_loader
         self.voice_channel = voice_channel
@@ -15,6 +17,7 @@ class Player:
         self.FFMPEG_OPTIONS = FFMPEG_OPTIONS 
         self.bot = bot
         self.deaf = deaf
+        self.engine = engine
         
 
     async def connect(self):
@@ -92,7 +95,7 @@ class Player:
                 for pattern in patterns:
                     if re.search(pattern, data):
                         try:
-                            track_info_list = plugin.search(data)
+                            track_info_list = plugin.search(data=data, engine=self.engine)
                             return track_info_list
                         except Exception as e:
                             raise TrackError(f"Plugin: {plugin.get_plugin_name()} \nError finding track info: {e}")
@@ -101,7 +104,7 @@ class Player:
             for plugin in plugins:
                 if plugin.__class__.__name__ == 'QueryPlugin':
                     try:
-                        track_info = plugin.search(data)
+                        track_info = plugin.search(data, engine=self.engine)
                         if track_info:
                             return track_info
                         else:

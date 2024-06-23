@@ -4,6 +4,7 @@ import disnake
 from disnake.ext import commands
 import logging
 from typing import Dict
+from dsplayer.engines_system.ytmusic import YTMusic
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,7 +32,8 @@ async def play(inter: disnake.ApplicationCommandInteraction, query: str) -> None
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 
                 'options': '-vn'
             },
-            deaf=True
+            deaf=True,
+            engine=YTMusic
         )
         players[inter.guild.id] = player
 

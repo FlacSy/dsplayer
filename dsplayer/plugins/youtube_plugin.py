@@ -1,4 +1,5 @@
 from dsplayer.plugin_system.plugin_interface import PluginInterface
+from dsplayer.engines_system.engine_interface import EngineInterface
 from yt_dlp import YoutubeDL
 from typing import Dict, Any
 
@@ -27,7 +28,11 @@ class YoutubePlugin(PluginInterface):
     def update_settings(self, settings: Dict[str, Any]) -> None:
         self.settings.update(settings)
 
-    def search(self, url: str) -> Dict[str, Any]:
+    def search(self, url: str, engine: EngineInterface) -> Dict[str, Any]:
+        """
+        ### Параметр engine в данном плагине не используется! 
+        #### Этоn параметр тут "заглушка" для избежания ошибок!
+        """
         ydl_opts = {
             'format': 'bestaudio/best'
         }
