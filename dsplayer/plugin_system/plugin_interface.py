@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any
+from typing import Dict, Any
 from dsplayer.engines_system.engine_interface import EngineInterface
 
 class PluginInterface(ABC):

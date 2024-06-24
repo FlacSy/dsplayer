@@ -1,10 +1,7 @@
 from dsplayer.plugin_system.plugin_interface import PluginInterface
-from dsplayer.utils.user_agent import get_random_user_agent
 from dsplayer.engines_system.engine_interface import EngineInterface
 from yt_dlp import YoutubeDL
 from typing import Dict, Any
-import requests
-import re
 
 
 class QueryPlugin(PluginInterface):
