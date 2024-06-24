@@ -3,8 +3,10 @@ from dsplayer.player_system.player import Player
 import disnake
 from disnake.ext import commands
 import logging
+import asyncio
 from typing import Dict
 from dsplayer.engines_system.ytmusic import YTMusic
+from dsplayer.engines_system.soundсloud import SoundCloudSearchEngine
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,7 +35,7 @@ async def play(inter: disnake.ApplicationCommandInteraction, query: str) -> None
                 'options': '-vn'
             },
             deaf=True,
-            engine=YTMusic
+            engine=SoundCloudSearchEngine
         )
         players[inter.guild.id] = player
 
@@ -43,8 +45,10 @@ async def play(inter: disnake.ApplicationCommandInteraction, query: str) -> None
     track_info_list = player.find_track_info(plugin_loader, query)
     if track_info_list:
         for track_info in track_info_list:
+            while player.is_playing():
+                await asyncio.sleep(0.1)
             await player.add_and_play(track_info)
-            embed = disnake.Embed(title=f"Added to the queue: {track_info['title']}")
+            embed = disnake.Embed(title=f"{track_info['title']}", color=0x490DDD, url=query)
             embed.add_field(name=track_info['title'], value=track_info['artist'])
             formatted_duration = divmod(track_info['duration'], 60)
             embed.add_field(name='Duration', value=f'{formatted_duration[0]}:{formatted_duration[1]}')

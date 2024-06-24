@@ -1,4 +1,4 @@
-# Документация для библиотеки dsplayer
+# Документация
 
 ## Для пользователей библиотеки
 
@@ -17,6 +17,18 @@ pip install dsplayer
 ### Подробный пример создания бота
 
 **В [example.py](examples/example.py) вы найдете пример создания бота, использующего `dsplayer`.**
+
+### Плагины 
+В `dsplayer` предусмотрены следущии плгины 
+- **[Query](dsplayer\plugins\query_plugin.py) - этот плагин позволяет производить поиск музыки по ее названию**
+- **[Spotify](dsplayer\plugins\spotify_plugin.py) - этот плагин позволяет искать треки, плейлисты и авторов из Spotify**
+- **[YouTube](dsplayer/plugins/youtube_plugin.py) - этот плагин позволяет искать треки из YouTube, YouTube Music, YouTube Shorts**
+- **[SoundCloud](dsplayer/plugins/soundcloud_plugin.py) - этот плагин позволяет искать треки, плейлисты и авторов из SoundCloud**
+
+### Поисковые движки 
+В `dsplayer` предусмотрены следущии поисковые движки 
+- **[SoundCloud](dsplayer\engines_system\soundсloud.py) - он имеет точность выше чем `YouTube Music` но поиск может занимать 2-3+ секунды вместо 1-2**
+- **[YouTube Music](dsplayer\engines_system\ytmusic.py) - он имеет более нискую чтоность но он быстрее чем `SoundCloud`**
 
 ## Для разработчиков библиотеки и плагинов
 
@@ -103,6 +115,5 @@ except TrackError as e:
 
 ## TODO
 
-- SoundCloud плагин 
-- Apple Music поисковый движок 
-- Рефакторинг структуры проекта  
+- ~~SoundCloud плагин~~
+- ~~Рефакторинг структуры проекта~~

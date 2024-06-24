@@ -3,6 +3,7 @@ __pycache__/
 .libtest
 .libplugindev
 .venv
+.cache
 
 dsplayer.egg-info
 dist

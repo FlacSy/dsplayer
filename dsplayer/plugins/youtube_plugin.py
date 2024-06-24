@@ -30,8 +30,8 @@ class YoutubePlugin(PluginInterface):
 
     def search(self, url: str, engine: EngineInterface) -> Dict[str, Any]:
         """
-        ### Параметр engine в данном плагине не используется! 
-        #### Этоn параметр тут "заглушка" для избежания ошибок!
+        Параметр engine в данном плагине не используется! 
+        Этоn параметр тут "заглушка" для избежания ошибок!
         """
         ydl_opts = {
             'format': 'bestaudio/best'

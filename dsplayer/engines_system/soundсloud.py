@@ -8,28 +8,26 @@ from webdriver_manager.chrome import ChromeDriverManager
 from dsplayer.engines_system.engine_interface import EngineInterface
 
 class SoundCloudSearchEngine(EngineInterface):
-    def __init__(self):
-        self.driver = None
-        self._initialize_driver()
-
-    def _initialize_driver(self):
+    def initialize_driver():
         chrome_options = Options()
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         
-        if not self.driver:
-            self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        return driver    
 
-    def get_url_by_query(self, query: str):
+    def get_url_by_query(query: str):
         try:
+            driver = SoundCloudSearchEngine.initialize_driver()
             search_url = f"https://soundcloud.com/search?q={query}"
-            self.driver.get(search_url)
-            track_element = WebDriverWait(self.driver, 4).until(
+            driver.get(search_url)
+            track_element = WebDriverWait(driver, 4).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, 'a.soundTitle__title'))
             )
 
             track_link = track_element.get_attribute('href')
+            driver.quit()
 
             return track_link
         except Exception as e:

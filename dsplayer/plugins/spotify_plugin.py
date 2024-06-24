@@ -34,40 +34,40 @@ class SpotifyPlugin(PluginInterface):
     def update_settings(self, settings: Dict[str, Any]) -> None:
         self.settings.update(settings)
 
-    def search(self, data: str) -> Dict[str, Any]:
+    def search(self, data: str, engine: EngineInterface) -> Dict[str, Any]:
         if "track" in data:
-            return [self._search_track(data)]
+            return [self._search_track(data, engine)]
         elif "playlist" in data:
-            return self._search_playlist(data)
+            return self._search_playlist(data, engine)
         elif "artist" in data:
-            return self._search_artist(data)
+            return self._search_artist(data, engine)
         elif "album" in data:
-            return self._search_album(data)
+            return self._search_album(data, engine)
         
-    def _search_playlist(self, data: str):
+    def _search_playlist(self, data: str, engine: EngineInterface):
         spotify_data = self.sp.playlist(data)
         spotify_urls = [item['track']['external_urls']['spotify'] for item in spotify_data['tracks']['items']]
         for url in spotify_urls:
-            yield self._search_track(url)
+            yield self._search_track(url, engine)
 
-    def _search_artist(self, data: str):
+    def _search_artist(self, data: str, engine: EngineInterface):
         spotify_data = self.sp.artist_top_tracks(data)
         spotify_urls = [item['external_urls']['spotify'] for item in spotify_data['tracks']]
         for url in spotify_urls:
-            yield self._search_track(url)
+            yield self._search_track(url, engine)
     
-    def _search_album(self, data: str):
+    def _search_album(self, data: str, engine: EngineInterface):
         spotify_data = self.sp.album_tracks(data)
         spotify_urls = [item['external_urls']['spotify'] for item in spotify_data['items']]
         for url in spotify_urls:
-            yield self._search_track(url)
+            yield self._search_track(url, engine)
 
-    def _search_track(self, data: str) -> Dict[str, Any]:
+    def _search_track(self, data: str, engine: EngineInterface) -> Dict[str, Any]:
         spotify_data = self.sp.track(data)
         artist_name = spotify_data['artists'][0]['name']
         track_name = spotify_data['name']
         track_image = spotify_data['album']['images'][0]['url']
-        url = self._search_by_query(f"{artist_name} {track_name}")
+        url = self._search_by_query(f"{artist_name} {track_name}", engine)
         audio_url, duration = self._search_by_url(url)
 
         track_info = {
