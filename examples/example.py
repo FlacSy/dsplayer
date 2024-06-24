@@ -1,12 +1,11 @@
-from dsplayer.plugin_system.plugin_loader import PluginLoader
-from dsplayer.player_system.player import Player
+from dsplayer import PluginLoader
+from dsplayer import Player
 import disnake
 from disnake.ext import commands
 import logging
 import asyncio
 from typing import Dict
-from dsplayer.engines_system.ytmusic import YTMusic
-from dsplayer.engines_system.soundсloud import SoundCloudSearchEngine
+from dsplayer.engines_system.soundcloud import SoundCloudSearchEngine
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
