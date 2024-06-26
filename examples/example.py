@@ -5,7 +5,7 @@ from disnake.ext import commands
 import logging
 import asyncio
 from typing import Dict
-from dsplayer.engines_system.soundcloud import SoundCloudSearchEngine
+from dsplayer import SoundCloudSearchEngine
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

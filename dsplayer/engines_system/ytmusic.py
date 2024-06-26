@@ -3,7 +3,7 @@ import requests
 from dsplayer.utils.user_agent import get_random_user_agent
 from dsplayer.engines_system.engine_interface import EngineInterface
 
-class YTMusic(EngineInterface):
+class YTMusicSearchEngine(EngineInterface):
 
     def get_url_by_query(query: str):
         try:
