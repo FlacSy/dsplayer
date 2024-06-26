@@ -24,6 +24,7 @@ pip install dsplayer
 - **[Spotify](dsplayer\plugins\spotify_plugin.py) - этот плагин позволяет искать треки, плейлисты и авторов из Spotify**
 - **[YouTube](dsplayer/plugins/youtube_plugin.py) - этот плагин позволяет искать треки из YouTube, YouTube Music, YouTube Shorts**
 - **[SoundCloud](dsplayer/plugins/soundcloud_plugin.py) - этот плагин позволяет искать треки, плейлисты и авторов из SoundCloud**
+- **[Apple Music](dsplayer/plugins/applemusic_plugin.py) - этот плагин позволяет искать треки из Apple Music**
 
 ### Поисковые движки 
 В `dsplayer` предусмотрены следущии поисковые движки 
