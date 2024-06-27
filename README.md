@@ -4,7 +4,7 @@
 
 ### Описание
 
-`dsplayer` - это библиотека для Discord ботов. Она позволяет подключаться к голосовым каналам, воспроизводить треки из различных источников и управлять очередью воспроизведения. Также она имеет плагины которые способны роширить количество платформ
+`dsplayer` - это библиотека для Discord ботов. Она позволяет подключаться к голосовым каналам, воспроизводить треки из различных источников и управлять очередью воспроизведения. Также она имеет плагины, которые способны расширить количество платформ.
 
 ### Установка
 
@@ -19,17 +19,18 @@ pip install dsplayer
 **В [example.py](examples/example.py) вы найдете пример создания бота, использующего `dsplayer`.**
 
 ### Плагины 
-В `dsplayer` предусмотрены следущии плгины 
-- **[Query](dsplayer\plugins\query_plugin.py) - этот плагин позволяет производить поиск музыки по ее названию**
-- **[Spotify](dsplayer\plugins\spotify_plugin.py) - этот плагин позволяет искать треки, плейлисты и авторов из Spotify**
-- **[YouTube](dsplayer/plugins/youtube_plugin.py) - этот плагин позволяет искать треки из YouTube, YouTube Music, YouTube Shorts**
-- **[SoundCloud](dsplayer/plugins/soundcloud_plugin.py) - этот плагин позволяет искать треки, плейлисты и авторов из SoundCloud**
-- **[Apple Music](dsplayer/plugins/applemusic_plugin.py) - этот плагин позволяет искать треки из Apple Music**
+В `dsplayer` предусмотрены следующие плагины:
+- **[Query](dsplayer/plugins/query_plugin.py)** - этот плагин позволяет производить поиск музыки по ее названию.
+- **[Spotify](dsplayer/plugins/spotify_plugin.py)** - этот плагин позволяет искать треки, плейлисты и авторов из Spotify.
+- **[YouTube](dsplayer/plugins/youtube_plugin.py)** - этот плагин позволяет искать треки из YouTube, YouTube Music, YouTube Shorts.
+- **[SoundCloud](dsplayer/plugins/soundcloud_plugin.py)** - этот плагин позволяет искать треки, плейлисты и авторов из SoundCloud.
+- **[Apple Music](dsplayer/plugins/applemusic_plugin.py)** - этот плагин позволяет искать треки из Apple Music.
 
 ### Поисковые движки 
-В `dsplayer` предусмотрены следущии поисковые движки 
-- **[SoundCloud](dsplayer\engines_system\soundсloud.py) - он имеет точность выше чем `YouTube Music` но поиск может занимать 2-3+ секунды вместо 1-2**
-- **[YouTube Music](dsplayer\engines_system\ytmusic.py) - он имеет более нискую чтоность но он быстрее чем `SoundCloud`**
+В `dsplayer` предусмотрены следующие поисковые движки:
+- **[SoundCloud](dsplayer/engines_system/soundcloud.py)** - он имеет точность выше, чем `YouTube Music`, но поиск может занимать 2-3+ секунды вместо 1-2.
+- **[YouTube Music](dsplayer/engines_system/ytmusic.py)** - он имеет более низкую точность, но он быстрее, чем `SoundCloud`.
+
 ---
 ## Для разработчиков библиотеки и плагинов
 
@@ -39,7 +40,7 @@ pip install dsplayer
 dsplayer/
 ├───engines_system
 │   ├───engine_interface.py
-│   ├───soundсloud.py
+│   ├───soundcloud.py
 │   └───ytmusic.py
 ├───player_system
 │   ├───player.py
@@ -48,7 +49,8 @@ dsplayer/
 ├───plugins
 │   ├───query_plugin.py
 │   ├───spotify_plugin.py
-│   └───youtube_plugin.py
+│   ├───youtube_plugin.py
+│   └───soundcloud_plugin.py
 ├───plugin_system
 │   ├───plugin_interface.py
 │   ├───plugin_loader.py
@@ -82,7 +84,7 @@ class YourPlugin(PluginInterface):
         # Ваша реализация 
         pass
 
-    def get_url_paterns(self) -> list:
+    def get_url_patterns(self) -> list:
         return self.url_patterns
 ```
 

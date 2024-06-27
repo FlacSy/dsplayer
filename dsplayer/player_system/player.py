@@ -6,10 +6,10 @@ from dsplayer.player_system.queue import Queue
 from dsplayer.plugin_system.plugin_loader import PluginLoader
 from dsplayer.utils.exceptions.lib_exceptions import TrackNotFound, TrackError
 from dsplayer.engines_system.engine_interface import EngineInterface
-from dsplayer.engines_system.ytmusic import YTMusic
+from dsplayer.engines_system.ytmusic import YTMusicSearchEngine
 
 class Player:
-    def __init__(self, voice_channel: disnake.VoiceChannel, bot: commands.Bot, plugin_loader: PluginLoader, FFMPEG_OPTIONS: dict = {}, deaf: bool = True, engine: EngineInterface = YTMusic):
+    def __init__(self, voice_channel: disnake.VoiceChannel, bot: commands.Bot, plugin_loader: PluginLoader, FFMPEG_OPTIONS: dict = {}, deaf: bool = True, engine: EngineInterface = YTMusicSearchEngine):
         self.queue = Queue()
         self.plugin_loader = plugin_loader
         self.voice_channel = voice_channel
