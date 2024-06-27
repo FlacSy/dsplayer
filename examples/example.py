@@ -6,6 +6,8 @@ import logging
 import asyncio
 from typing import Dict
 from dsplayer import SoundCloudSearchEngine
+from dsplayer import event_emitter as emutter
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,6 +17,14 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 plugin_loader = PluginLoader()
 players: Dict[int, Player] = {}
+
+@emutter.event('on_play')
+def on_track_end() -> None:
+    logger.info('Track played')
+
+@emutter.event('on_skip')
+def on_skip() -> None:
+    logger.info('Track skipped')
 
 @bot.slash_command()
 async def play(inter: disnake.ApplicationCommandInteraction, query: str) -> None:
