@@ -33,7 +33,7 @@ class Player:
             await self.voice_client.disconnect()
             self.voice_client = None
         event_emitter.emit("on_disconnect")
-        
+
     async def play_next(self):
         await self.voice_client.guild.change_voice_state(channel=self.voice_channel, self_deaf=True, self_mute=False)
         if not self.queue.is_empty():
@@ -42,18 +42,34 @@ class Player:
                 try:
                     if not self.voice_client.is_playing():
                         event_emitter.emit("on_play")
+                        event_emitter.emit("on_track_start", track)
                         if self.FFMPEG_OPTIONS == {}:
-                            self.voice_client.play(disnake.FFmpegPCMAudio(track['url']), after=lambda e: asyncio.run_coroutine_threadsafe(self.play_next(), self.bot.loop))
+                            self.voice_client.play(disnake.FFmpegPCMAudio(track['url']), after=lambda e: self.track_ended(e))
                         else:
-                            self.voice_client.play(disnake.FFmpegPCMAudio(track['url'], **self.FFMPEG_OPTIONS), after=lambda e: asyncio.run_coroutine_threadsafe(self.play_next(), self.bot.loop))
+                            self.voice_client.play(disnake.FFmpegPCMAudio(track['url'], **self.FFMPEG_OPTIONS), after=lambda e: self.track_ended(e))
                         
                         await self.bot.change_presence(activity=disnake.Game(name=track['title']))                
                 except Exception as e:
+                    event_emitter.emit("on_error", e)
                     raise TrackError(f"Error playing track: {e}")
             else:
                 raise TrackNotFound("No track found to play")
         else:
             raise TrackNotFound("The queue is empty")
+
+    def track_ended(self, error):
+        if error:
+            event_emitter.emit("on_error", error)
+        event_emitter.emit("on_track_end")
+        asyncio.run_coroutine_threadsafe(self.play_next(), self.bot.loop)
+
+    async def get_player(self):
+        return self.voice_client
+
+    async def create_event(self, event_name, *args, **kwargs):
+        event = getattr(self, event_name)
+        if event:
+            await event(*args, **kwargs)
 
     async def add_and_play(self, track_info):
         self.queue.add_track(track_info)
@@ -85,8 +101,15 @@ class Player:
         event_emitter.emit("on_skip")
 
     async def add_to_queue(self, track_info):
-        self.queue.add_track(track_info)  
-        
+        self.queue.add_track(track_info)
+
+    async def set_volume(self, volume: float):
+        if self.voice_client is not None:
+            if self.voice_client.source.volume > 1:
+                volume = 1
+            self.voice_client.source.volume = volume
+            event_emitter.emit("on_volume_change", volume)
+
     def is_playing(self):
         return self.voice_client is not None and self.voice_client.is_playing()
 
@@ -98,6 +121,7 @@ class Player:
         return self.plugin_loader.update_plugin_settings(plugin_name, settings)
 
     def find_track_info(self, plugin_loader: PluginLoader, data: str):
+        event_emitter.emit("on_track_search_start", data)
         plugins = plugin_loader.get_plugins()
         if data.startswith('http'):
             for plugin in plugins:
@@ -106,8 +130,10 @@ class Player:
                     if re.search(pattern, data):
                         try:
                             track_info_list = plugin.search(data=data, engine=self.engine)
+                            event_emitter.emit("on_track_search_end", track_info_list)
                             return track_info_list
                         except Exception as e:
+                            event_emitter.emit("on_error", e)
                             raise TrackError(f"Plugin: {plugin.get_plugin_name()} \nError finding track info: {e}")
 
         else:
@@ -116,10 +142,12 @@ class Player:
                     try:
                         track_info = plugin.search(data, engine=self.engine)
                         if track_info:
+                            event_emitter.emit("on_track_search_end", track_info)
                             return track_info
                         else:
                             raise TrackNotFound(f"Plugin: {plugin.get_plugin_name()} \nNo track info found with the provided query")
                     except Exception as e:
+                        event_emitter.emit("on_error", e)
                         raise TrackError(f"Plugin: {plugin.get_plugin_name()} \nError finding track info: {e}")
-                    
+
         raise TrackNotFound(f"Plugin: {plugin.get_plugin_name()} \nNo suitable plugin found to handle the provided data")
