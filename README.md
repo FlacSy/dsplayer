@@ -30,7 +30,7 @@ pip install dsplayer
 В `dsplayer` предусмотрены следующие поисковые движки:
 - **[SoundCloud](dsplayer/engines_system/soundcloud.py)** - он имеет точность выше, чем `YouTube Music`, но поиск может занимать 2-3+ секунды вместо 1-2.
 - **[YouTube Music](dsplayer/engines_system/ytmusic.py)** - он имеет более низкую точность, но он быстрее, чем `SoundCloud`.
-
+- **[Bandcamp](dsplayer/engines_system/bandcamp.py)** - он имеет достаточно высокую точность и производительность как у `YouTube Music`
 
 ### События
 
