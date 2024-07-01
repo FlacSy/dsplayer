@@ -28,7 +28,7 @@ class YoutubePlugin(PluginInterface):
     def update_settings(self, settings: Dict[str, Any]) -> None:
         self.settings.update(settings)
 
-    def search(self, url: str, engine: EngineInterface) -> Dict[str, Any]:
+    def search(self, data: str, engine: EngineInterface) -> Dict[str, Any]:
         """
         Параметр engine в данном плагине не используется! 
         Этоn параметр тут "заглушка" для избежания ошибок!
@@ -38,7 +38,7 @@ class YoutubePlugin(PluginInterface):
         }
 
         with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
+            info = ydl.extract_info(data, download=False)
             audio_url = info['url'] 
             thumbnail_url = info.get('thumbnail')
             title = info.get('title')
