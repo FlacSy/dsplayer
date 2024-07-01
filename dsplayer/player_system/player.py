@@ -42,7 +42,6 @@ class Player:
                 try:
                     if not self.voice_client.is_playing():
                         event_emitter.emit("on_play")
-                        event_emitter.emit("on_track_start", track)
                         if self.FFMPEG_OPTIONS == {}:
                             self.voice_client.play(disnake.FFmpegPCMAudio(track['url']), after=lambda e: self.track_ended(e))
                         else:
