@@ -26,13 +26,13 @@ class Player:
             self.voice_client = await self.voice_channel.connect()    
         elif self.voice_client.channel != self.voice_channel:
             await self.voice_client.move_to(self.voice_channel)
-        event_emitter.emit("on_connect")
+        event_emitter.emit("on_connect", self.voice_client)
 
     async def disconnect(self):
         if self.voice_client is not None:
             await self.voice_client.disconnect()
             self.voice_client = None
-        event_emitter.emit("on_disconnect")
+        event_emitter.emit("on_disconnect", self.voice_client)
 
     async def play_next(self):
         await self.voice_client.guild.change_voice_state(channel=self.voice_channel, self_deaf=True, self_mute=False)
@@ -41,7 +41,7 @@ class Player:
             if track:
                 try:
                     if not self.voice_client.is_playing():
-                        event_emitter.emit("on_play")
+                        event_emitter.emit("on_play", track)
                         if self.FFMPEG_OPTIONS == {}:
                             self.voice_client.play(disnake.FFmpegPCMAudio(track['url']), after=lambda e: self.track_ended(e))
                         else:
@@ -59,7 +59,7 @@ class Player:
     def track_ended(self, error):
         if error:
             event_emitter.emit("on_error", error)
-        event_emitter.emit("on_track_end")
+        event_emitter.emit("on_track_end", self.queue.current_track)
         asyncio.run_coroutine_threadsafe(self.play_next(), self.bot.loop)
 
     async def get_player(self):
@@ -74,30 +74,30 @@ class Player:
         self.queue.add_track(track_info)
         if not self.voice_client.is_playing():
             await self.play_next()
-        event_emitter.emit("on_add_to_queue")
+        event_emitter.emit("on_add_to_queue", track_info)
 
     async def stop(self):
         if self.voice_client is not None:
             self.queue.clear()
             self.voice_client.stop()
             await self.bot.change_presence(activity=None)
-        event_emitter.emit("on_stop")
+        event_emitter.emit("on_stop", self.queue)
 
     async def pause(self):
         if self.voice_client is not None:
             self.voice_client.pause()
-        event_emitter.emit("on_pause")
+        event_emitter.emit("on_pause", self.queue)
 
     async def resume(self):
         if self.voice_client is not None:
             self.voice_client.resume()
-        event_emitter.emit("on_resume")
+        event_emitter.emit("on_resume", self.queue)
 
     async def skip(self):
         if self.voice_client is not None:
             self.voice_client.stop()
             await self.play_next()
-        event_emitter.emit("on_skip")
+        event_emitter.emit("on_skip", self.queue)
 
     async def add_to_queue(self, track_info):
         self.queue.add_track(track_info)
