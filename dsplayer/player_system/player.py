@@ -6,11 +6,60 @@ from dsplayer.player_system.queue import Queue
 from dsplayer.plugin_system.plugin_loader import PluginLoader
 from dsplayer.utils.lib_exceptions import TrackNotFound, TrackError
 from dsplayer.engines_system.engine_interface import EngineInterface
-from dsplayer.engines_system.ytmusic import YTMusicSearchEngine
+from dsplayer.engines.ytmusic import YTMusicSearchEngine
 from dsplayer.utils.events import event_emitter
 
 
 class Player:
+    """                                                                                
+    Attributes:
+        queue (Queue): A queue for managing tracks to be played.
+        plugin_loader (PluginLoader): Manages loading and interacting with plugins.
+        voice_channel (disnake.VoiceChannel): The voice channel where the player is connected.
+        voice_client (disnake.VoiceClient): The client handling voice connections.
+        FFMPEG_OPTIONS (dict): Options to customize FFmpeg audio stream.
+        bot (commands.Bot): The Discord bot instance.
+        deaf (bool): Indicates if the bot should be deafened when connected.
+        engine (EngineInterface): The search engine used to find track information.
+
+    Methods:
+        __init__(self, voice_channel, bot, plugin_loader, FFMPEG_OPTIONS={}, deaf=True, engine=YTMusicSearchEngine):
+            Initializes a new Player instance.
+        async connect(self):
+            Connects the player to the voice channel.
+        async disconnect(self):
+            Disconnects the player from the voice channel.
+        async play_next(self):
+            Plays the next track in the queue.
+        track_ended(self, error):
+            Handles actions when a track ends, triggering the next track to play.
+        async get_player(self):
+            Returns the current voice client instance.
+        async create_event(self, event_name, *args, **kwargs):
+            Dynamically triggers an event with the provided name.
+        async add_and_play(self, track_info):
+            Adds a track to the queue and starts playing if no track is currently playing.
+        async stop(self):
+            Stops playing tracks and clears the queue.
+        async pause(self):
+            Pauses the currently playing track.
+        async resume(self):
+            Resumes playback of the paused track.
+        async skip(self):
+            Skips the current track and starts playing the next one in the queue.
+        async add_to_queue(self, track_info):
+            Adds a track to the queue.
+        async set_volume(self, volume: float):
+            Sets the volume of the player.
+        is_playing(self):
+            Checks if the player is currently playing a track.
+        is_connected(self):
+            Checks if the player is connected to a voice channel.
+        update_plugin_settings(self, plugin_name: str, settings: dict) -> bool:
+            Updates settings for a specified plugin.
+        find_track_info(self, plugin_loader: PluginLoader, data: str):
+            Searches for track information based on provided data using available plugins.
+    """
     def __init__(self, voice_channel: disnake.VoiceChannel, bot: commands.Bot, plugin_loader: PluginLoader, FFMPEG_OPTIONS: dict = {}, deaf: bool = True, engine: EngineInterface = YTMusicSearchEngine):
         self.queue = Queue()
         self.plugin_loader = plugin_loader

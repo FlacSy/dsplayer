@@ -1,6 +1,7 @@
 from .engines_system.engine_interface import *
-from .engines_system.soundcloud import *
-from .engines_system.ytmusic import * 
+from .engines.soundcloud import *
+from .engines.ytmusic import * 
+from .engines.bandcamp import *
 
 from .player_system.player import *
 from .player_system.queue import *
