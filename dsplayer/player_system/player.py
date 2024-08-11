@@ -152,10 +152,8 @@ class Player:
         self.queue.add_track(track_info)
 
     async def set_volume(self, volume: float):
-        if self.voice_client is not None:
-            if self.voice_client.source.volume > 1:
-                volume = 1
-            self.voice_client.source.volume = volume
+        if self.voice_client is not None and self.voice_client.source is not None:
+            self.voice_client.source = disnake.PCMVolumeTransformer(self.voice_client.source, volume)
             event_emitter.emit("on_volume_change", volume)
 
     def is_playing(self):
