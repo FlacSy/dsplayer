@@ -247,7 +247,7 @@ pip install git+https://github.com/FlacSy/dsplayer
 - **[SoundCloud](dsplayer/engines_system/soundcloud.py)** - он имеет точность выше, чем `YouTube Music`, но поиск может занимать 2-3+ секунды вместо 1-2.
 - **[Bandcamp](dsplayer/engines_system/bandcamp.py)** - он имеет достаточно высокую точность и производительность как у `YouTube Music`
 
-***⚠️ SoundCloud и Bandcamp работают на Selenium! Если вы хотите их использовать то вам нужно иметь Chrome браузер и chrome driver под ваш браузер!***
+***⚠️ SoundCloud работает на Selenium! Если вы хотите его использовать то вам нужно иметь Chrome браузер и chrome driver под ваш браузер!***
 
 ### Список событий 
 
