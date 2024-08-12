@@ -17,10 +17,10 @@ class SpotifyPlugin(PluginInterface):
         self.settings = {}
         
     def on_plugin_load(self) -> None:
-        print(f"Plugin '{self.name}' loaded.")
+        pass
 
     def on_plugin_unload(self) -> None:
-        print(f"Plugin '{self.name}' unloaded.")
+        pass
 
     def get_url_patterns(self) -> list:
         return self.url_patterns

@@ -88,12 +88,15 @@ async def play(inter: disnake.ApplicationCommandInteraction, query: str) -> None
             embed.set_image(url=track_info['thumbnail_url'])
             await inter.send(embed=embed)
 
-            while player.is_playing():
-                await asyncio.sleep(0.1)
-            await player.add_and_play(track_info)
+            if player.is_playing():
+                await player.add_to_queue(track_info)
+            else:
+                # Если ничего не играет, начинаем воспроизведение сразу
+                await player.add_and_play(track_info)
 
     else:
         await inter.edit_original_response(content='Трек не найден.')
+
 
 # Команда для паузы текущего трека
 @bot.slash_command(description="Поставить трек на паузу.")
