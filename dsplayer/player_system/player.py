@@ -40,7 +40,7 @@ class Player:
         async add_and_play(self, track_info):
             Adds a track to the queue and starts playing if no track is currently playing.
         async stop(self):
-            Stops playing tracks and clears the queue.
+            Stops playing tracks.
         async pause(self):
             Pauses the currently playing track.
         async resume(self):
@@ -95,8 +95,6 @@ class Player:
                             self.voice_client.play(disnake.FFmpegPCMAudio(track['url']), after=lambda e: self.track_ended(e))
                         else:
                             self.voice_client.play(disnake.FFmpegPCMAudio(track['url'], **self.FFMPEG_OPTIONS), after=lambda e: self.track_ended(e))
-                        
-                        await self.bot.change_presence(activity=disnake.Game(name=track['title']))                
                 except Exception as e:
                     event_emitter.emit("on_error", e)
                     raise TrackError(f"Error playing track: {e}")
@@ -105,11 +103,39 @@ class Player:
         else:
             raise TrackNotFound("The queue is empty")
 
+    async def play_previous(self):
+        back_track = self.queue.get_back_track()
+        if back_track:
+            try:
+                if not self.voice_client.is_playing():
+                    event_emitter.emit("on_play_previous", back_track)
+                    if self.FFMPEG_OPTIONS == {}:
+                        self.voice_client.play(disnake.FFmpegPCMAudio(back_track['url']), after=lambda e: self.track_ended(e))
+                    else:
+                        self.voice_client.play(disnake.FFmpegPCMAudio(back_track['url'], **self.FFMPEG_OPTIONS), after=lambda e: self.track_ended(e))
+                else:
+                    await self.stop()
+                    await self.play_previous()
+            except Exception as e:
+                event_emitter.emit("on_error", e)
+                raise TrackError(f"Error playing previous track: {e}")
+        else:
+            raise TrackNotFound("No previous track found to play")
+
     def track_ended(self, error):
         if error:
             event_emitter.emit("on_error", error)
-        event_emitter.emit("on_track_end", self.queue.current_track)
-        asyncio.run_coroutine_threadsafe(self.play_next(), self.bot.loop)
+        
+        if self.bot.loop.is_closed():
+            event_emitter.emit("on_error", RuntimeError("Event loop is closed."))
+            return
+        
+        if self.is_connected() and self.voice_client:
+            asyncio.run_coroutine_threadsafe(self.play_next(), self.bot.loop)
+        else:
+            event_emitter.emit("on_error", RuntimeError("Bot is not connected or voice client is unavailable."))
+        
+        event_emitter.emit("on_track_end")
 
     async def get_player(self):
         return self.voice_client
@@ -127,9 +153,7 @@ class Player:
 
     async def stop(self):
         if self.voice_client is not None:
-            self.queue.clear()
             self.voice_client.stop()
-            await self.bot.change_presence(activity=None)
         event_emitter.emit("on_stop", self.queue)
 
     async def pause(self):
