@@ -2,12 +2,19 @@ import pkgutil
 import importlib
 from dsplayer.plugin_system.plugin_interface import PluginInterface
 from typing import List, Optional, Dict, Any
+from dsplayer.utils.debug import Debuger
+
 
 class PluginLoader:
     def __init__(self, plugin_packages: List[str] = ['dsplayer.plugins']):
         self.plugin_packages = plugin_packages
         self.plugins: List[PluginInterface] = []
+        self.debug_mode = False
+        self.debug_print = Debuger(self.debug_mode).debug_print
         self._load_plugins()
+
+    def debug(self):
+        self.debug_mode = True
 
     def _load_plugins(self) -> None:
         for plugin_package in self.plugin_packages:
@@ -22,8 +29,7 @@ class PluginLoader:
                             self.plugins.append(plugin_instance)
                             plugin_instance.on_plugin_load()
 
-        else:
-            print("\nAll plugins are loaded!\n")
+        self.debug_print("All plugins are loaded!")
 
     def get_plugins(self) -> List[PluginInterface]:
         return self.plugins
@@ -40,14 +46,3 @@ class PluginLoader:
             plugin.update_settings(settings)
             return True
         return False
-    
-    # def unload_plugin_by_name(self, plugin_name: str) -> bool:
-    #     for plugin in self.plugins:
-    #         if plugin.get_plugin_name() == plugin_name:
-    #             plugin.on_plugin_unload()
-    #             self.plugins.remove(plugin)
-    #             return True
-    #     return False
-    
-    # def load_plugin_by_name(self, plugin_name: str) -> bool:
-    #     pass

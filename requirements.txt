@@ -31,3 +31,4 @@ yt-dlp==2024.5.27
 selenium==4.22.0
 webdriver_manager
 spotipy
+colorama

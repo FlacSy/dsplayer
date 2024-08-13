@@ -1,8 +1,8 @@
 __pycache__/
 
-.libtest
+libtest
 .libplugindev
-.venv
+venv
 .cache
 
 dsplayer.egg-info

@@ -1,56 +1,54 @@
 from typing import Any, Optional, List, Iterable
 
+
 class Queue:
     def __init__(self) -> None:
         self._queue: List[Any] = []
         self._history: List[Any] = []
-        self._repeat: bool = False  # Режим повтора
+        self._current_index: Optional[int] = None
+        self._repeat: bool = False
 
-    def add_track(self, track: Any) -> None:
-        """Добавляет трек в конец очереди."""
-        self._queue.append(track)
+    def set_repeat(self, repeat: bool) -> None:
+        """Устанавливает флаг повторения треков."""
+        self._repeat = repeat
 
-    def add_next(self, track: Any) -> None:
-        """Добавляет трек в начало очереди (после текущего трека)."""
-        self._queue.insert(1, track)
+    def is_repeat_enabled(self) -> bool:
+        """Возвращает True, если функция повторения включена."""
+        return self._repeat
 
-    def get_next_track(self) -> Optional[Any]:
-        """Получает и удаляет следующий трек в очереди."""
-        if self._repeat and self._history:
-            return self._history[-1]
-        if self._queue:
-            track = self._queue.pop(0)
-            self._history.append(track)
-            return track
-        return None
-
-    def get_current_track(self) -> Optional[Any]:
-        """Возвращает текущий трек без удаления его из истории."""
-        if self._history:
-            return self._history[-1]
-        return None
-
-    def get_back_track(self) -> Optional[Any]:
-        """Получает и удаляет последний трек из истории."""
-        if self._history:
-            track = self._history.pop()
-            self._queue.insert(0, track)
-            return track
-        return None
+    def get_current_index(self) -> Optional[int]:
+        """Возвращает индекс текущего трека."""
+        return self._current_index
 
     def remove_track(self, index: int) -> Optional[Any]:
         """Удаляет трек из очереди по индексу и возвращает его, если индекс корректен."""
         if 0 <= index < len(self._queue):
             return self._queue.pop(index)
         return None
+    
+    def add_track(self, track: Any) -> None:
+        """Добавляет трек в конец очереди."""
+        self._queue.append(track)
+        if self._current_index is None:
+            self._current_index = 0
 
-    def toggle_repeat(self) -> None:
-        """Переключает режим повтора."""
-        self._repeat = not self._repeat
+    def get_last(self) -> Optional[Any]:
+        """Возвращает последний трек в очереди."""
+        if self._queue:
+            return self._queue[-1]
+        return None
 
-    def is_repeat_enabled(self) -> bool:
-        """Возвращает состояние режима повтора."""
-        return self._repeat
+    def get_first(self) -> Optional[Any]:
+        """Возвращает первый трек в очереди."""
+        if self._queue:
+            return self._queue[0]
+        return None
+
+    def get_next_track(self) -> Optional[Any]:
+        """Возвращает следующий трек после текущего."""
+        if self._current_index is not None and 0 <= self._current_index + 1 < len(self._queue):
+            return self._queue[self._current_index + 1]
+        return None
 
     def get_queue(self) -> List[Any]:
         """Возвращает список всех треков в очереди."""
@@ -67,19 +65,22 @@ class Queue:
     def clear(self) -> None:
         """Очищает очередь."""
         self._queue = []
-
     def clear_history(self) -> None:
         """Очищает историю."""
         self._history = []
 
+    def update_current_index(self) -> None:
+        """Обновляет индекс текущего трека после завершения воспроизведения."""
+        if self._current_index is not None:
+            self._current_index += 1
+            if self._current_index >= len(self._queue):
+                self._current_index = None
+
     def __len__(self) -> int:
-        """Возвращает количество треков в очереди."""
         return len(self._queue)
     
     def __iter__(self) -> Iterable:
-        """Возвращает итератор по трекам в очереди."""
         return iter(self._queue)
     
     def __getitem__(self, index: int) -> Any:
-        """Возвращает трек по индексу."""
         return self._queue[index]

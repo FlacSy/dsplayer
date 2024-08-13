@@ -1,20 +1,21 @@
-from typing import Callable, Dict, List, Any
+import asyncio
 
 class EventEmitter:
     def __init__(self):
-        self._events: Dict[str, List[Callable]] = {}
+        self.events = {}
 
-    def event(self, event: str):
-        def decorator(func: Callable):
-            if event not in self._events:
-                self._events[event] = []
-            self._events[event].append(func)
+    def event(self, name):
+        def decorator(func):
+            self.events.setdefault(name, []).append(func)
             return func
         return decorator
 
-    def emit(self, event: str, *args: Any, **kwargs: Any):
-        if event in self._events:
-            for handler in self._events[event]:
+    def emit(self, name, *args, **kwargs):
+        handlers = self.events.get(name, [])
+        for handler in handlers:
+            if asyncio.iscoroutinefunction(handler):
+                asyncio.create_task(handler(*args, **kwargs))
+            else:
                 handler(*args, **kwargs)
 
 event_emitter = EventEmitter()
