@@ -289,11 +289,25 @@ pip install git+https://github.com/FlacSy/dsplayer
 
 ### Плагины 
 В `dsplayer` предусмотрены следующие плагины:
-- **[Query](dsplayer/plugins/query_plugin.py)** - этот плагин позволяет производить поиск музыки по ее названию.
-- **[Spotify](dsplayer/plugins/spotify_plugin.py)** - этот плагин позволяет искать треки, плейлисты и авторов из Spotify.
-- **[YouTube](dsplayer/plugins/youtube_plugin.py)** - этот плагин позволяет искать треки из YouTube, YouTube Music, YouTube Shorts.
-- **[SoundCloud](dsplayer/plugins/soundcloud_plugin.py)** - этот плагин позволяет искать треки, плейлисты и авторов из SoundCloud.
-- **[Apple Music](dsplayer/plugins/applemusic_plugin.py)** - этот плагин позволяет искать треки из Apple Music.
+- **[Query](dsplayer/plugins/query_plugin.py)** - этот плагин позволяет производить поиск музыки по ее названию, он уже часть корабля :)
+
+
+- **[Spotify](https://github.com/FlacSy/dsplayer-spotify)** - этот плагин позволяет искать треки, плейлисты и авторов из Spotify.
+    ```bash
+    pip3 install dsplayer-spotify
+    ```
+- **[YouTube](https://github.com/FlacSy/dsplayer-youtube)** - этот плагин позволяет искать треки из YouTube, YouTube Music, YouTube Shorts.
+    ```bash
+    pip3 install dsplayer-youtube
+    ```
+- **[SoundCloud](https://github.com/FlacSy/dsplayer-soundcloud)** - этот плагин позволяет искать треки, плейлисты и авторов из SoundCloud.
+    ```bash
+    pip3 install dsplayer-soundcloud
+    ```
+- **[Apple Music](https://github.com/FlacSy/dsplayer-applemusic)** - этот плагин позволяет искать треки из Apple Music.
+    ```bash
+    pip3 install dsplayer-applemusic
+    ```
 
 ### Поисковые движки 
 В `dsplayer` предусмотрены следующие поисковые движки:
@@ -555,7 +569,7 @@ async def play(ctx, url):
             await ctx.send('Вы не подключены к голосовому каналу.')
             return
 
-    await player.play_track({'url': url})
+    await player.play(plugin_loader, url)
     await ctx.send(f'Трек добавлен в очередь: {url}')
 
 bot.run('YOUR_BOT_TOKEN')

@@ -11,11 +11,11 @@ from dsplayer.utils.events import event_emitter
 from dsplayer.utils.debug import Debuger
 
 class Player:
-    def __init__(self, voice_channel: disnake.VoiceChannel, text_channel: disnake.TextChannel, bot: commands.Bot, plugin_loader: PluginLoader, FFMPEG_OPTIONS: dict = {}, deaf: bool = True, engine: EngineInterface = YTMusicSearchEngine, debug: bool = False):
+    def __init__(self, voice_id: int, text_id: int, bot: commands.Bot, plugin_loader: PluginLoader, volume: float = 1.0, FFMPEG_OPTIONS: dict = {}, deaf: bool = True, engine: EngineInterface = YTMusicSearchEngine, debug: bool = False):
         self.queue = Queue()
         self.plugin_loader = plugin_loader
-        self.voice_channel = voice_channel
-        self.text_channel = text_channel
+        self.voice_channel = bot.get_channel(voice_id)
+        self.text_id = text_id
         self.voice_client = None
         self.FFMPEG_OPTIONS = FFMPEG_OPTIONS 
         self.bot = bot
@@ -67,8 +67,11 @@ class Player:
             raise TrackError("No track is currently playing to skip")
 
     async def set_volume(self, volume: float):
+        if volume is not None:
+            self.volume = volume
+
         if self.voice_client is not None and self.voice_client.source is not None:
-            self.voice_client.source = disnake.PCMVolumeTransformer(self.voice_client.source, volume)
+            self.voice_client.source = disnake.PCMVolumeTransformer(self.voice_client.source, self.volume)
             event_emitter.emit("on_volume_change", volume)
 
     def update_plugin_settings(self, plugin_name: str, settings: dict) -> bool:
@@ -88,13 +91,14 @@ class Player:
 
                 if not self.voice_client.is_playing():
                     self.debug_print(f"Playing track: {track}")
-                    event_emitter.emit("on_play_track", [track, self.text_channel])
+                    event_emitter.emit("on_play_track", [track, self.text_id])
                     self.debug_print("Event is emitted")
                     audio_source = disnake.FFmpegPCMAudio(track['url'], **self.FFMPEG_OPTIONS)
                     
                     if audio_source:
                         self.debug_print(f"Audio source created: {audio_source}")
                         self.voice_client.play(audio_source, after=lambda e: self._track_ended(e))
+                        await set_volume()
                         self.debug_print("Play command sent")
                         self.queue.update_current_index()
                     else:
