@@ -26,22 +26,6 @@
     <input type="text" id="search-input" placeholder="Поиск..." oninput="searchInDocs()">
 </div>
 
-<script>
-function searchInDocs() {
-    let input = document.getElementById('search-input');
-    let filter = input.value.toLowerCase();
-    let sections = document.querySelectorAll('section, h2, h3, h4, p, code');
-
-    sections.forEach((section) => {
-        if (section.innerText.toLowerCase().includes(filter)) {
-            section.style.display = '';
-        } else {
-            section.style.display = 'none';
-        }
-    });
-}
-</script>
-
 ## Для пользователей библиотеки
 
 ### Описание
@@ -445,7 +429,7 @@ import disnake
 from disnake.ext import commands
 from dsplayer import Player
 from dsplayer.plugin_system.plugin_loader import PluginLoader
-from dsplayer.engines_system.ytmusic import YTMusicSearchEngine
+from dsplayer.engines.ytmusic import YTMusicSearchEngine
 
 intents = disnake.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -463,6 +447,7 @@ async def play(ctx, url):
             voice_channel = ctx.author.voice.channel
             player = Player(
                 voice_channel=voice_channel,
+                text_channel = voice_channel,
                 bot=bot,
                 plugin_loader=plugin_loader,
                 engine=YTMusicSearchEngine,
@@ -474,7 +459,7 @@ async def play(ctx, url):
             await ctx.send('Вы не подключены к голосовому каналу.')
             return
 
-    await player.play_track({'url': url})
+    await player.play(plugin_loader, url)
     await ctx.send(f'Трек добавлен в очередь: {url}')
 
     # Если трек только добавлен, воспроизводим его
@@ -493,7 +478,7 @@ import disnake
 from disnake.ext import commands
 from dsplayer import Player
 from dsplayer.plugin_system.plugin_loader import PluginLoader
-from dsplayer.engines_system.ytmusic import YTMusicSearchEngine
+from dsplayer.engines.ytmusic import YTMusicSearchEngine
 
 intents = disnake.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)

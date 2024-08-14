@@ -176,8 +176,11 @@ class Player:
         plugins = plugin_loader.get_plugins()
         if self.debug:
             plugin_loader.debug()
-        for plugin in plugins:
-            if url_or_query.startswith('http'):
+
+        track_found = False
+        
+        if url_or_query.startswith('http'):
+            for plugin in plugins:    
                 patterns = plugin.get_url_patterns()
                 for pattern in patterns:
                     if re.search(pattern, url_or_query):
@@ -185,48 +188,43 @@ class Player:
                             if self.debug:
                                 plugin.debug()
                             track_generator = plugin.search(data=url_or_query, engine=self.engine)
-                            first_track = None
-                            
                             async for track_info in track_generator:
-                                if first_track is None:
+                                if not track_found:
                                     self.debug_print(f"Adding first track: {track_info}")
-                                    first_track = track_info
                                     self.queue.add_track(track_info)
                                     await self.play_next()
+                                    track_found = True
                                 else:
                                     self.queue.add_track(track_info)
                                     event_emitter.emit("on_track_add_to_queue", track_info)
-
                             event_emitter.emit("on_track_search_end", track_generator)
-                            return
+                            if track_found:
+                                return
                         except Exception as e:
                             self.debug_print(f"Error finding track info with plugin: {plugin.get_plugin_name()} \n{e}")
                             event_emitter.emit("on_error", e)
-                            raise TrackError(f"Plugin: {plugin.get_plugin_name()} \nError finding track info: {e}")
 
-        else:
-            for plugin in plugins:
-                if plugin.__class__.__name__ == 'QueryPlugin':
-                    try:
-                        if self.debug:
-                            plugin.debug()
-                        track_generator = plugin.search(data=url_or_query, engine=self.engine)
-                        first_track = None
-                        
-                        async for track_info in track_generator:
-                            if first_track is None:
-                                self.debug_print(f"Adding first track: {track_info}")
-                                first_track = track_info
-                                self.queue.add_track(track_info)
-                                await self.play_next()
-                            else:
-                                self.queue.add_track(track_info)
-                                event_emitter.emit("on_track_add_to_queue", track_info)
+        for plugin in plugins:
+            if plugin.__class__.__name__ == 'QueryPlugin':
+                try:
+                    if self.debug:
+                        plugin.debug()
+                    track_generator = plugin.search(data=url_or_query, engine=self.engine)
+                    async for track_info in track_generator:
+                        if not track_found:
+                            self.debug_print(f"Adding first track: {track_info}")
+                            self.queue.add_track(track_info)
+                            await self.play_next()
+                            track_found = True
+                        else:
+                            self.queue.add_track(track_info)
+                            event_emitter.emit("on_track_add_to_queue", track_info)
+                    event_emitter.emit("on_track_search_end", track_generator)
+                    if track_found:
+                        return
+                except Exception as e:
+                    self.debug_print(f"Error finding track info with plugin: {plugin.get_plugin_name()} \n{e}")
+                    event_emitter.emit("on_error", e)
 
-                        event_emitter.emit("on_track_search_end", track_generator)
-                    except Exception as e:
-                        self.debug_print(f"Error finding track info with plugin: {plugin.get_plugin_name()} \n{e}")
-                        event_emitter.emit("on_error", e)
-                        raise TrackError(f"Plugin: {plugin.get_plugin_name()} \nError finding track info: {e}")
-
-        raise TrackNotFound(f"No suitable plugin found to handle the provided data")
+        if not track_found:
+            raise TrackNotFound(f"No suitable plugin found to handle the provided data")
