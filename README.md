@@ -16,7 +16,6 @@
   - [PluginLoader](#pluginloader)
     - [PluginLoader Атрибуты](#pluginloader-attributes)
     - [PluginLoader Методы](#pluginloader-methods)
-    pluginloader
   - [Плагины](#плагины)
   - [Поисковые движки](#поисковые-движки)
   - [Список событий](#список-событий)
@@ -46,7 +45,7 @@ pip install git+https://github.com/FlacSy/dsplayer
 
 
 ### Класс `Player`
-- **Атрибуты:** {player-attributes}
+- **Player Attributes:**
   1. **`queue: Queue`** — объект класса `Queue`, представляющий очередь треков для воспроизведения.
   2. **`plugin_loader: PluginLoader`** — объект класса `PluginLoader`, загружающий плагины.
   3. **`voice_channel: Optional[disnake.VoiceChannel]`** — объект канала голосовой связи.
@@ -60,7 +59,7 @@ pip install git+https://github.com/FlacSy/dsplayer
   11. **`debug_print: Callable`** — функция для печати отладочных сообщений.
   12. **`volume: float`** — громкость плеера.
 
-- **Методы:** {player-methods}
+- **Player Methods:**
   1. **`__init__(self, voice_id: int, text_id: int, bot: commands.Bot, plugin_loader: PluginLoader, volume: float = 1.0, FFMPEG_OPTIONS: dict = {}, deaf: bool = True, engine: EngineInterface = YTMusicSearchEngine, debug: bool = False)`** — инициализирует объект плеера с необходимыми атрибутами.
   2. **`connect(self)`** — подключает бота к голосовому каналу.
   3. **`disconnect(self)`** — отключает бота от голосового канала.
@@ -78,7 +77,7 @@ pip install git+https://github.com/FlacSy/dsplayer
   15. **`_play_current(self)`** — воспроизводит текущий трек в очереди.
 
 ### Класс `Queue`
-- **Атрибуты:** {queue-attributes}
+- **Queue Attributes:**
   1. **`_queue: List[Any]`** — список треков в очереди.
   2. **`_history: List[Any]`** — список треков в истории воспроизведения.
   3. **`_current_index: Optional[int]`** — индекс текущего трека.
@@ -105,14 +104,14 @@ pip install git+https://github.com/FlacSy/dsplayer
   18. **`__getitem__(self, index: int) -> Any`** — возвращает трек по индексу.
 
 ### Класс `PluginLoader`
-- **Атрибуты:** {pluginloader-attributes}
+- **Pluginloader Attributes:**
   1. **`plugin_packages: List[str]`** — список пакетов плагинов.
   2. **`plugin_classes: List[Type[PluginInterface]]`** — список классов плагинов.
   3. **`plugins: List[PluginInterface]`** — список экземпляров плагинов.
   4. **`debug_mode: bool`** — флаг, указывающий, включен ли режим отладки.
   5. **`debug_print: Callable`** — функция для печати отладочных сообщений.
 
-- **Методы:** {pluginloader-methods}
+- **Pluginloader Methods:**
   1. **`__init__(self, plugin_packages: List[str] = ['dsplayer.plugin_system'])`** — инициализирует загрузчик плагинов и загружает плагины.
   2. **`debug(self)`** — включает режим отладки.
   3. **`load_plugins_from_classes(self, plugin_classes: List[Type[PluginInterface]]) -> None`** — загружает плагины из переданных классов.
