@@ -1,36 +1,33 @@
 # Документация
 ---
 
+
 ## Навигация
 
 - [Для пользователей библиотеки](#для-пользователей-библиотеки)
   - [Описание](#описание)
   - [Установка](#установка)
   - [Player](#player)
-    - [Атрибуты](#атрибуты)
-    - [Методы](#методы)
+    - [Player Атрибуты](#player-attributes)
+    - [Player Методы](#player-methods)
   - [Queue](#queue)
-    - [Атрибуты](#атрибуты)
-    - [Методы](#методы)
+    - [Queue Атрибуты](#queue-attributes)
+    - [Queue Методы](#queue-methods)
+  - [PluginLoader](#pluginloader)
+    - [PluginLoader Атрибуты](#pluginloader-attributes)
+    - [PluginLoader Методы](#pluginloader-methods)
+    pluginloader
   - [Плагины](#плагины)
   - [Поисковые движки](#поисковые-движки)
   - [Список событий](#список-событий)
   - [Примеры использования](#примеры-использования)
-- [Для разработчиков библиотеки и плагинов](#для-разработчиков-библиотеки-и-плагинов)
-  - [Структура проекта](#структура-проекта)
-  - [Создание плагинов](#создание-плагинов)
-  - [Создание поисковых движков](#создание-поисковых-движков)
-  - [Обработка исключений](#обработка-исключений)
 
-<div id="search-container">
-    <input type="text" id="search-input" placeholder="Поиск..." oninput="searchInDocs()">
-</div>
 
 ## Для пользователей библиотеки
 
 ### Описание
 
-`dsplayer` - это библиотека для Discord ботов. Она позволяет подключаться к голосовым каналам, воспроизводить треки из различных источников и управлять очередью воспроизведения. Также она имеет плагины, которые способны расширить количество платформ.
+`dsplayer` - это библиотека для Discord ботов. Она позволяет подключаться к голосовым каналам, воспроизводить треки и управлять очередью воспроизведения. Также она имеет плагины, которые способны расширить количество платформ.
 
 ### Установка
 
@@ -47,245 +44,83 @@ pip install git+https://github.com/FlacSy/dsplayer
 
 Преймущества установки через PyPi это стабильность, на GitHub выкладываються последние изменения
 
-# Player 
 
-Класс `Player` управляет воспроизведением аудиотреков, включая подключение к голосовым каналам, управление очередью треков, взаимодействие с плагинами. Он интегрируется с библиотекой `disnake` для взаимодействия с Discord и использует собственную систему очереди и плагинов для расширения функциональности.
+### Класс `Player`
+- **Атрибуты:** {player-attributes}
+  1. **`queue: Queue`** — объект класса `Queue`, представляющий очередь треков для воспроизведения.
+  2. **`plugin_loader: PluginLoader`** — объект класса `PluginLoader`, загружающий плагины.
+  3. **`voice_channel: Optional[disnake.VoiceChannel]`** — объект канала голосовой связи.
+  4. **`text_id: int`** — идентификатор текстового канала.
+  5. **`voice_client: Optional[disnake.VoiceClient]`** — объект клиента голосовой связи.
+  6. **`FFMPEG_OPTIONS: dict`** — опции для FFMPEG.
+  7. **`bot: commands.Bot`** — объект бота.
+  8. **`deaf: bool`** — флаг, указывающий, должен ли бот быть заглушен при подключении.
+  9. **`engine: EngineInterface`** — объект интерфейса поискового движка для треков.
+  10. **`debug: bool`** — флаг, включающий или выключающий режим отладки.
+  11. **`debug_print: Callable`** — функция для печати отладочных сообщений.
+  12. **`volume: float`** — громкость плеера.
+
+- **Методы:** {player-methods}
+  1. **`__init__(self, voice_id: int, text_id: int, bot: commands.Bot, plugin_loader: PluginLoader, volume: float = 1.0, FFMPEG_OPTIONS: dict = {}, deaf: bool = True, engine: EngineInterface = YTMusicSearchEngine, debug: bool = False)`** — инициализирует объект плеера с необходимыми атрибутами.
+  2. **`connect(self)`** — подключает бота к голосовому каналу.
+  3. **`disconnect(self)`** — отключает бота от голосового канала.
+  4. **`stop(self)`** — останавливает текущий трек и очищает очередь.
+  5. **`pause(self)`** — ставит воспроизведение на паузу.
+  6. **`resume(self)`** — возобновляет воспроизведение.
+  7. **`skip(self)`** — пропускает текущий трек и воспроизводит следующий в очереди.
+  8. **`previous(self)`** — воспроизводит предыдущий трек в очереди.
+  9. **`set_volume(self, volume: float)`** — устанавливает громкость для текущего трека.
+  10. **`update_plugin_settings(self, plugin_name: str, settings: dict) -> bool`** — обновляет настройки для указанного плагина.
+  11. **`play_track(self, track: dict)`** — воспроизводит указанный трек.
+  12. **`_track_ended(self, error)`** — обрабатывает событие окончания трека.
+  13. **`_play_next(self)`** — воспроизводит следующий трек в очереди.
+  14. **`_play_previous(self)`** — воспроизводит предыдущий трек в очереди.
+  15. **`_play_current(self)`** — воспроизводит текущий трек в очереди.
+
+### Класс `Queue`
+- **Атрибуты:** {queue-attributes}
+  1. **`_queue: List[Any]`** — список треков в очереди.
+  2. **`_history: List[Any]`** — список треков в истории воспроизведения.
+  3. **`_current_index: Optional[int]`** — индекс текущего трека.
+  4. **`_repeat: bool`** — флаг повторения треков.
+
+- **Методы:** {queue-methods}
+  1. **`__init__(self)`** — инициализирует очередь.
+  2. **`set_repeat(self, repeat: bool) -> None`** — устанавливает флаг повторения треков.
+  3. **`is_repeat_enabled(self) -> bool`** — возвращает `True`, если функция повторения включена.
+  4. **`get_current_index(self) -> Optional[int]`** — возвращает индекс текущего трека.
+  5. **`remove_track(self, index: int) -> Optional[Any]`** — удаляет трек по индексу и возвращает его.
+  6. **`add_track(self, track: Any) -> None`** — добавляет трек в очередь.
+  7. **`get_last(self) -> Optional[Any]`** — возвращает последний трек в очереди.
+  8. **`get_first(self) -> Optional[Any]`** — возвращает первый трек в очереди.
+  9. **`get_next_track(self) -> Optional[Any]`** — возвращает следующий трек после текущего.
+  10. **`get_queue(self) -> List[Any]`** — возвращает список всех треков в очереди.
+  11. **`get_history(self) -> List[Any]`** — возвращает список всех треков из истории.
+  12. **`is_empty(self) -> bool`** — проверяет, пустая ли очередь.
+  13. **`clear(self) -> None`** — очищает очередь.
+  14. **`clear_history(self) -> None`** — очищает историю.
+  15. **`update_current_index(self) -> None`** — обновляет индекс текущего трека после завершения воспроизведения.
+  16. **`__len__(self) -> int`** — возвращает количество треков в очереди.
+  17. **`__iter__(self) -> Iterable`** — возвращает итератор для очереди.
+  18. **`__getitem__(self, index: int) -> Any`** — возвращает трек по индексу.
+
+### Класс `PluginLoader`
+- **Атрибуты:** {pluginloader-attributes}
+  1. **`plugin_packages: List[str]`** — список пакетов плагинов.
+  2. **`plugin_classes: List[Type[PluginInterface]]`** — список классов плагинов.
+  3. **`plugins: List[PluginInterface]`** — список экземпляров плагинов.
+  4. **`debug_mode: bool`** — флаг, указывающий, включен ли режим отладки.
+  5. **`debug_print: Callable`** — функция для печати отладочных сообщений.
+
+- **Методы:** {pluginloader-methods}
+  1. **`__init__(self, plugin_packages: List[str] = ['dsplayer.plugin_system'])`** — инициализирует загрузчик плагинов и загружает плагины.
+  2. **`debug(self)`** — включает режим отладки.
+  3. **`load_plugins_from_classes(self, plugin_classes: List[Type[PluginInterface]]) -> None`** — загружает плагины из переданных классов.
+  4. **`_load_plugins(self) -> None`** — загружает плагины из указанных пакетов и точек входа.
+  5. **`get_plugins(self) -> List[PluginInterface]`** — возвращает список загруженных плагинов.
+  6. **`get_plugin_by_name(self, plugin_name: str) -> Optional[PluginInterface]`** — возвращает плагин по его имени.
+  7. **`update_plugin_settings(self, plugin_name: str, settings: Dict[str, Any]) -> bool`** — обновляет настройки указанного плагина.
 
-
-## Атрибуты
-
-- **queue (Queue):**  
-  Экземпляр класса `Queue`, который управляет списком треков для воспроизведения в голосовом канале.
-
-- **plugin_loader (PluginLoader):**  
-  Отвечает за загрузку и взаимодействие с различными плагинами, которые могут расширять функциональность плеера.
-
-- **voice_channel (disnake.VoiceChannel):**  
-  Голосовой канал Discord, к которому подключен плеер.
-
-- **voice_client (disnake.VoiceClient):**  
-  Клиент, управляющий голосовыми соединениями в Discord.
-
-- **FFMPEG_OPTIONS (dict):**  
-  Словарь с опциями для настройки аудиопотока FFmpeg, используемого для воспроизведения треков.
-
-- **bot (commands.Bot):**  
-  Экземпляр Discord-бота, с которым связан плеер.
-
-- **deaf (bool):**  
-  Указывает, должен ли бот отключать звук у самого себя при подключении к голосовому каналу.
-
-- **engine (EngineInterface):**  
-  Поисковый движок, используемый для получения информации о треках. По умолчанию используется `YTMusicSearchEngine`.
-
-- **debug (bool):**
-  Режим отладки.   
-
-### Методы
-
-### `async` `connect(self)`
-
-Подключает плеер к указанному голосовому каналу. Если плеер уже подключен к другому каналу, он перемещается в новый.
-
-- **Вызывает:** Событие `on_connect` после подключения.
-
-### `async` `disconnect(self)`
-
-Отключает плеер от голосового канала и очищает клиент голосового канала.
-
-- **Вызывает:** Событие `on_disconnect` после отключения.
-
-### `async` `stop(self)`
-
-Останавливает воспроизведение треков и очищает очередь.
-
-- **Вызывает:** Событие `on_stop`.
-
-### `async` `pause(self)`
-
-Приостанавливает текущий воспроизводимый трек.
-
-- **Вызывает:** Событие `on_pause`.
-
-### `async` `resume(self)`
-
-Возобновляет воспроизведение приостановленного трека.
-
-- **Вызывает:** Событие `on_resume`.
-
-### `async` `skip(self)`
-
-Пропускает текущий трек и начинает воспроизведение следующего в очереди.
-
-- **Вызывает:** Событие `on_skip`.
-
-### `async` `set_volume(self, volume: float)`
-
-Устанавливает громкость плеера.
-
-- **Параметры:**
-  - `volume (float)`: Уровень громкости (от 0.0 до 1.0).
-
-- **Вызывает:** Событие `on_volume_change`.
-
-### `update_plugin_settings(self, plugin_name: str, settings: dict) -> bool`
-
-Обновляет настройки для указанного плагина.
-
-- **Параметры:**
-  - `plugin_name (str)`: Имя плагина, для которого обновляются настройки.
-  - `settings (dict)`: Новые настройки для плагина.
-
-- **Возвращает:** `bool`: `True`, если настройки были успешно обновлены, `False` в противном случае.
-
-- **Вызывает:** Событие `on_update_plugin_settings`.
-
-### `async` `play_track(self, track: dict)`
-
-Запускает воспроизведение указанного трека.
-
-- **Параметры:**
-  - `track (dict)`: Словарь, содержащий информацию о треке для воспроизведения, включая URL аудиопотока.
-
-- **Вызывает:** Событие `on_play`.
-
-### `async` `play_next(self)`
-
-Воспроизводит следующий трек в очереди. Если очередь пуста, ничего не воспроизводится.
-
-- **Вызывает:** Событие `on_play_next`.
-
-### `async` `add_and_play(self, track: dict)`
-
-Добавляет трек в очередь и начинает его воспроизведение, если ничего не воспроизводится в данный момент.
-
-- **Параметры:**
-  - `track (dict)`: Словарь, содержащий информацию о треке для добавления в очередь.
-
-- **Вызывает:** Событие `on_add_to_queue`.
-
-### `async` `play_previous(self)`
-
-Возвращает воспроизведение к предыдущему треку в очереди.
-
-- **Вызывает:** Событие `on_play_previous`.
-
-### `async` `find_track_info(self, query: str) -> dict`
-
-Выполняет поиск информации о треке на основе заданного запроса.
-
-- **Параметры:**
-  - `query (str)`: Строка, содержащая запрос для поиска трека.
-
-- **Возвращает:** `dict`: Словарь с информацией о найденном треке.
-
-- **Вызывает:** События `on_track_search_start` и `on_track_search_end`.
-
-### `async` `play(self, track: dict)`
-
-Запускает воспроизведение трека, заданного в параметре `track`, если ничего не воспроизводится в данный момент. Если трек уже воспроизводится, обновляет его.
-
-- **Параметры:**
-  - `track (dict)`: Словарь с информацией о треке, который нужно воспроизвести, включая URL аудиопотока.
-
-- **Вызывает:** Событие `on_play`.
-
-## Queue
-
-Класс `Queue` управляет списком треков, предназначенных для воспроизведения в плеере. Этот класс позволяет добавлять, удалять и управлять треками в очереди, а также предоставляет историю воспроизведенных треков. Ниже приведены основные атрибуты и методы, которые можно использовать для работы с очередью.
-
-### Атрибуты
-
-- **_queue (List[Any]):**  
-  Список текущих треков в очереди.
-
-- **_history (List[Any]):**  
-  Список треков, которые уже были воспроизведены.
-
-- **_current_index (Optional[int]):**  
-  Индекс текущего воспроизводимого трека в очереди. Если нет воспроизводимого трека, значение будет `None`.
-
-- **_repeat (bool):**  
-  Флаг, указывающий, включена ли функция повторения треков.
-
-### Методы
-
-#### `set_repeat(self, repeat: bool) -> None`
-
-Устанавливает флаг повторения треков.
-
-- **Параметры:**
-  - `repeat (bool)`: Значение флага повторения (включить или отключить).
-
-#### `is_repeat_enabled(self) -> bool`
-
-Возвращает `True`, если функция повторения включена.
-
-#### `get_current_index(self) -> Optional[int]`
-
-Возвращает индекс текущего трека. Если индекс отсутствует, возвращает `None`.
-
-#### `remove_track(self, index: int) -> Optional[Any]`
-
-Удаляет трек из очереди по указанному индексу и возвращает его. Если индекс некорректен, возвращает `None`.
-
-- **Параметры:**
-  - `index (int)`: Индекс трека в очереди, который нужно удалить.
-
-#### `add_track(self, track: Any) -> None`
-
-Добавляет трек в конец очереди. Если очередь пуста, устанавливает текущий индекс на первый трек.
-
-- **Параметры:**
-  - `track (Any)`: Трек, который нужно добавить в очередь.
-
-#### `get_last(self) -> Optional[Any]`
-
-Возвращает последний трек в очереди. Если очередь пуста, возвращает `None`.
-
-#### `get_first(self) -> Optional[Any]`
-
-Возвращает первый трек в очереди. Если очередь пуста, возвращает `None`.
-
-#### `get_next_track(self) -> Optional[Any]`
-
-Возвращает следующий трек после текущего в очереди. Если следующего трека нет, возвращает `None`.
-
-#### `get_queue(self) -> List[Any]`
-
-Возвращает список всех треков в очереди.
-
-#### `get_history(self) -> List[Any]`
-
-Возвращает список всех треков из истории.
-
-#### `is_empty(self) -> bool`
-
-Проверяет, пуста ли очередь.
-
-#### `clear(self) -> None`
-
-Очищает очередь.
-
-#### `clear_history(self) -> None`
-
-Очищает историю воспроизведения.
-
-#### `update_current_index(self) -> None`
-
-Обновляет индекс текущего трека после завершения воспроизведения. Если текущий трек был последним, устанавливает индекс на `None`.
-
-#### `__len__(self) -> int`
-
-Возвращает количество треков в очереди.
-
-#### `__iter__(self) -> Iterable`
-
-Возвращает итератор по очереди треков.
-
-#### `__getitem__(self, index: int) -> Any`
-
-Возвращает трек по указанному индексу.
 
 ### Плагины 
 В `dsplayer` предусмотрены следующие плагины:
@@ -321,65 +156,187 @@ pip install git+https://github.com/FlacSy/dsplayer
 
 Класс `Player` генерирует несколько событий через `event_emitter`. Эти события можно использовать для выполнения пользовательских действий в ответ на различные состояния воспроизведения. Ниже приведен список событий и когда они генерируются:
 
-1. **on_connect**
-   - **Описание**: Генерируется, когда бот успешно подключается к голосовому каналу.
-   - **Метод**: `connect`
+1. **`on_init`**
+   - **Когда вызывается:** При инициализации объекта `Player`.
+   - **Что возвращает:** Данные о начальных настройках плеера.
+   - **Возвращаемые данные:**
+     ```json
+     {
+       "voice_channel": <voice_channel_object>,
+       "text_id": <text_channel_id>,
+       "volume": <volume_level>,
+       "FFMPEG_OPTIONS": <ffmpeg_options_dict>,
+       "deaf": <deaf_status>,
+       "engine": <engine_object>,
+       "debug": <debug_status>
+     }
+     ```
 
-2. **on_disconnect**
-   - **Описание**: Генерируется, когда бот отключается от голосового канала.
-   - **Метод**: `disconnect`
+2. **`on_connect`**
+   - **Когда вызывается:** При подключении бота к голосовому каналу.
+   - **Что возвращает:** Данные о подключении.
+   - **Возвращаемые данные:**
+     ```json
+     {
+       "voice_client": <voice_client_object>,
+       "text_id": <text_channel_id>,
+       "voice_channel": <voice_channel_object>
+     }
+     ```
 
-3. **on_play**
-   - **Описание**: Генерируется, когда начинается воспроизведение трека.
-   - **Метод**: `play_next`
+3. **`on_disconnect`**
+   - **Когда вызывается:** При отключении бота от голосового канала.
+   - **Что возвращает:** Данные о состоянии после отключения.
+   - **Возвращаемые данные:**
+     ```json
+     {
+       "voice_client": <voice_client_object>,
+       "text_id": <text_channel_id>,
+       "voice_channel": <voice_channel_object>
+     }
+     ```
 
-4. **on_add_to_queue**
-   - **Описание**: Генерируется, когда трек добавляется в очередь.
-   - **Метод**: `add_and_play`
+4. **`on_stop`**
+   - **Когда вызывается:** При остановке воспроизведения трека и очистке очереди.
+   - **Что возвращает:** Данные о состоянии очереди и плеере после остановки.
+   - **Возвращаемые данные:**
+     ```json
+     {
+       "queue": <all_tracks_in_queue>,
+       "text_id": <text_channel_id>,
+       "voice_client": <voice_client_object>
+     }
+     ```
 
-5. **on_stop**
-   - **Описание**: Генерируется, когда воспроизведение останавливается и очередь очищается.
-   - **Метод**: `stop`
+5. **`on_pause`**
+   - **Когда вызывается:** При паузе текущего трека.
+   - **Что возвращает:** Данные о состоянии очереди и плеере после паузы.
+   - **Возвращаемые данные:**
+     ```json
+     {
+       "queue": <all_tracks_in_queue>,
+       "text_id": <text_channel_id>,
+       "voice_client": <voice_client_object>
+     }
+     ```
 
-6. **on_pause**
-   - **Описание**: Генерируется, когда воспроизведение приостанавливается.
-   - **Метод**: `pause`
+6. **`on_resume`**
+   - **Когда вызывается:** При возобновлении воспроизведения трека.
+   - **Что возвращает:** Данные о состоянии очереди и плеере после возобновления.
+   - **Возвращаемые данные:**
+     ```json
+     {
+       "queue": <all_tracks_in_queue>,
+       "text_id": <text_channel_id>,
+       "voice_client": <voice_client_object>
+     }
+     ```
 
-7. **on_resume**
-   - **Описание**: Генерируется, когда воспроизведение возобновляется после паузы.
-   - **Метод**: `resume`
+7. **`on_skip`**
+   - **Когда вызывается:** При пропуске текущего трека и переходе к следующему.
+   - **Что возвращает:** Данные о состоянии очереди и плеере после пропуска.
+   - **Возвращаемые данные:**
+     ```json
+     {
+       "queue": <all_tracks_in_queue>,
+       "text_id": <text_channel_id>,
+       "voice_client": <voice_client_object>
+     }
+     ```
 
-8. **on_skip**
-   - **Описание**: Генерируется, когда текущий трек пропускается.
-   - **Метод**: `skip`
+8. **`on_previous`**
+   - **Когда вызывается:** При возврате к предыдущему треку в очереди.
+   - **Что возвращает:** Данные о состоянии очереди и плеере после возврата.
+   - **Возвращаемые данные:**
+     ```json
+     {
+       "queue": <all_tracks_in_queue>,
+       "text_id": <text_channel_id>,
+       "voice_client": <voice_client_object>
+     }
+     ```
 
-9. **on_update_plugin_settings**
-   - **Описание**: Генерируется, когда настройки плагинов обновляются.
-   - **Метод**: `update_plugin_settings`
+9. **`on_update_plugin_settings`**
+   - **Когда вызывается:** При обновлении настроек плагина.
+   - **Что возвращает:** Данные о результатах обновления настроек.
+   - **Возвращаемые данные:**
+     ```json
+     {
+       "plugin_name": <plugin_name>,
+       "settings": <plugin_settings>,
+       "result": <update_success_or_failure>,
+       "text_id": <text_channel_id>
+     }
+     ```
 
-10. **on_track_end**
-    - **Описание**: Генерируется, когда трек заканчивает воспроизводиться.
-    - **Метод**: `play_next`
+10. **`on_play_track`**
+    - **Когда вызывается:** При начале воспроизведения нового трека.
+    - **Что возвращает:** Данные о треке и состоянии плеера.
+    - **Возвращаемые данные:**
+      ```json
+      {
+        "track": <track_info>,
+        "text_id": <text_channel_id>,
+        "voice_client": <voice_client_object>
+      }
+      ```
 
-11. **on_volume_change**
-    - **Описание**: Генерируется при изменении уровня громкости.
-    - **Метод**: `set_volume`
+11. **`on_track_queued`**
+    - **Когда вызывается:** При добавлении трека в очередь.
+    - **Что возвращает:** Данные о добавленном треке и состоянии очереди.
+    - **Возвращаемые данные:**
+      ```json
+      {
+        "track": <track_info>,
+        "text_id": <text_channel_id>,
+        "queue": <all_tracks_in_queue>
+      }
+      ```
 
-12. **on_error**
-    - **Описание**: Генерируется при возникновении ошибки.
-    - **Метод**: `play_next`, `find_track_info`
+12. **`on_error`**
+    - **Когда вызывается:** При возникновении ошибки во время выполнения команды.
+    - **Что возвращает:** Данные об ошибке.
+    - **Возвращаемые данные:**
+      ```json
+      {
+        "error": <error_message>,
+        "text_id": <text_channel_id>
+      }
+      ```
 
-13. **on_track_search_start**
-    - **Описание**: Генерируется при начале поиска трека.
-    - **Метод**: `find_track_info`
+13. **`on_queue_empty`**
+    - **Когда вызывается:** При отсутствии треков в очереди.
+    - **Что возвращает:** Данные о состоянии очереди после проверки.
+    - **Возвращаемые данные:**
+      ```json
+      {
+        "text_id": <text_channel_id>,
+        "queue": <all_tracks_in_queue>
+      }
+      ```
 
-14. **on_track_search_end**
-    - **Описание**: Генерируется при завершении поиска трека.
-    - **Метод**: `find_track_info`
+14. **`on_track_end`**
+    - **Когда вызывается:** Когда трек завершает воспроизведение.
+    - **Что возвращает:** Данные о завершении трека.
+    - **Возвращаемые данные:**
+      ```json
+      {
+        "text_id": <text_channel_id>
+      }
+      ```
 
-15. **on_play_previous**
-    - **Описание**: Генерируеться при проигровании преведущего трека.
-    - **Метод**: `play_previous`
+15. **`on_volume_change`**
+    - **Когда вызывается:** Когда изменяеться громкость.
+    - **Что возвращает:** Громкость трека.
+    - **Возвращаемые данные:**
+      ```json
+      {
+        "volume": <volume>,
+        "text_id": <text_channel_id>,
+        "voice_client": <voice_client>
+      }
+      ```
+
 
 
 ### Обработка исключений
@@ -426,12 +383,6 @@ except TrackError as e:
   - **TrackNotFound**: Трек не найден.
   - **TrackError**: Общая ошибка воспроизведения трека.
 
----
-
-Для расширения раздела "Примеры использования" с примерами использования `dsplayer`, можно добавить более детализированные примеры, которые охватывают различные сценарии использования библиотеки, такие как управление плеером, взаимодействие с плагинами и обработка событий. Вот как это можно сделать:
-
----
-
 ### Примеры использования
 
 #### Пример 1: Подключение и воспроизведение трека
@@ -441,14 +392,11 @@ except TrackError as e:
 ```python
 import disnake
 from disnake.ext import commands
-from dsplayer import Player
-from dsplayer.plugin_system.plugin_loader import PluginLoader
-from dsplayer.engines.ytmusic import YTMusicSearchEngine
+from dsplayer import Player, event_emitter
 
 intents = disnake.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-plugin_loader = PluginLoader()
 players = {}
 
 @bot.command()
@@ -461,9 +409,8 @@ async def play(ctx, url):
             voice_channel = ctx.author.voice.channel
             player = Player(
                 voice_channel=voice_channel,
-                text_channel = voice_channel,
                 bot=bot,
-                plugin_loader=plugin_loader,
+                plugin_loader=PluginLoader(),
                 engine=YTMusicSearchEngine,
                 debug=True
             )
@@ -473,12 +420,8 @@ async def play(ctx, url):
             await ctx.send('Вы не подключены к голосовому каналу.')
             return
 
-    await player.play(plugin_loader, url)
+    await player.play(url)
     await ctx.send(f'Трек добавлен в очередь: {url}')
-
-    # Если трек только добавлен, воспроизводим его
-    if not player.voice_client.is_playing() and not player.queue.is_empty():
-        await player.play_next()
 
 bot.run('YOUR_BOT_TOKEN')
 ```
@@ -506,7 +449,17 @@ async def skip(ctx):
     if ctx.guild.id in players:
         player = players[ctx.guild.id]
         await player.skip()
-        await ctx.send('Трек пропущен.')
+        await ctx.send('Играет следущий трек.')
+    else:
+        await ctx.send("Нет активного плеера для этого сервера.")
+
+@bot.command()
+async def previous(ctx):
+    """Вернуться к преведущему треку."""
+    if ctx.guild.id in players:
+        player = players[ctx.guild.id]
+        await player.previous()
+        await ctx.send('Играет преведущий трек.')
     else:
         await ctx.send("Нет активного плеера для этого сервера.")
 
@@ -541,42 +494,17 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 players = {}
 
-@event_emitter.event("on_play")
-async def on_play(track_info):
+@event_emitter.event("on_play_track")
+async def on_play_track(event_data: dict):
     """Отправляет сообщение, когда начинается воспроизведение трека."""
-    channel = track_info[1]
-    track = track_info[0]
+    track = track_info['track']
+    channel_id = event_data['text_id']
+    channel = bot.get_channel(channel_id)
     await channel.send(f"Начинается воспроизведение трека: {track['url']}")
 
-@bot.command()
-async def play(ctx, url):
-    """Добавить трек в очередь и воспроизвести его."""
-    if ctx.guild.id in players:
-        player = players[ctx.guild.id]
-    else:
-        if ctx.author.voice:
-            voice_channel = ctx.author.voice.channel
-            player = Player(
-                voice_channel=voice_channel,
-                bot=bot,
-                plugin_loader=PluginLoader(),
-                engine=YTMusicSearchEngine,
-                debug=True
-            )
-            players[ctx.guild.id] = player
-            await player.connect()
-        else:
-            await ctx.send('Вы не подключены к голосовому каналу.')
-            return
-
-    await player.play(plugin_loader, url)
-    await ctx.send(f'Трек добавлен в очередь: {url}')
 
 bot.run('YOUR_BOT_TOKEN')
 ```
-
-В этих примерах охватываются основные функции библиотеки `dsplayer`, включая подключение и воспроизведение треков, управление очередью, обработку событий и взаимодействие с плагинами. Эти примеры помогут пользователям быстро освоиться с библиотекой и интегрировать её в свои проекты.
-
 
 ## Для разработчиков библиотеки и плагинов
 
@@ -590,13 +518,9 @@ dsplayer/
 │   └───ytmusic.py
 ├───player_system
 │   ├───player.py
+│   ├───query_plugin.py
 │   ├───queue.py
 │   └───__init__.py
-├───plugins
-│   ├───query_plugin.py
-│   ├───spotify_plugin.py
-│   ├───youtube_plugin.py
-│   └───soundcloud_plugin.py
 ├───plugin_system
 │   ├───plugin_interface.py
 │   ├───plugin_loader.py
@@ -611,31 +535,11 @@ dsplayer/
 
 ### Создание плагинов
 
-Для создания плагинов необходимо реализовать интерфейс `PluginInterface`.
-
-```python
-from dsplayer.plugin_system.plugin_interface import PluginInterface
-from dsplayer.engines_system.engine_interface import EngineInterface
-from typing import List, Dict, Any
-
-class YourPlugin(PluginInterface):
-    def __init__(self):
-        self.name = "YourPlugin"
-        self.url_patterns = []
-
-    def on_plugin_load(self) -> None:
-        pass
-
-    def on_plugin_unload(self) -> None:
-        pass
-
-    def search(self, data: str, engine: EngineInterface) -> Dict[str, Any]:
-        # Ваша реализация 
-        pass
-
-    def get_url_patterns(self) -> list:
-        return self.url_patterns
-```
+Скачайте шаблон плагина:
+```bash
+git clone https://github.com/FlacSy/dsplayer-example
+``` 
+В данном шаблоне уже реализовано всё необходимое для создания плагинов. Вам нужно только реализовать свою логику в `plugin/plugin.py` и отредактировать `setup.py`. 
 
 ### Создание поисковых движков 
 
@@ -646,21 +550,4 @@ class YourEngine(EngineInterface):
     def get_url_by_query(query: str):
         # Ваша реализация 
         pass        
-```
-
-### Обработка исключений
-
-Для обработки различных ошибок используйте исключения из `dsplayer.utils.exceptions.lib_exceptions`.
-
-```python
-from dsplayer.utils.exceptions.lib_exceptions import VoiceChaneNotConnected, TrackNotFound, TrackError
-
-try:
-    # Ваш код
-except VoiceChaneNotConnected as e:
-    print(e)
-except TrackNotFound as e:
-    print(e)
-except TrackError as e:
-    print(e)
 ```

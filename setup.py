@@ -8,7 +8,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="dsplayer",
-    version="2.0.0b3",
+    version="2.0.0b4",
     description="Music player for Discord",
     long_description=long_description,
     long_description_content_type="text/markdown",
