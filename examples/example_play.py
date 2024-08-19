@@ -1,6 +1,6 @@
 import disnake
 from disnake.ext import commands
-from dsplayer import Player, event_emitter
+from dsplayer import Player, PluginLoader, YTMusicSearchEngine, event_emitter
 
 intents = disnake.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -14,13 +14,15 @@ async def play(ctx, url):
         player = players[ctx.guild.id]
     else:
         if ctx.author.voice:
-            voice_channel = ctx.author.voice.channel
+            channel_id = ctx.author.voice.channel.id
             player = Player(
-                voice_channel=voice_channel,
+                voice_id=channel_id,
+                text_id=channel_id,
                 bot=bot,
                 plugin_loader=PluginLoader(),
                 engine=YTMusicSearchEngine,
-                debug=True
+                debug=True, 
+                deaf=True
             )
             players[ctx.guild.id] = player
             await player.connect()
