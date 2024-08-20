@@ -1,5 +1,8 @@
 import random
 from typing import Any, Optional, List, Iterable
+from dsplayer.utils.events import EventEmitter
+from dsplayer.utils.debug import Debuger
+
 
 class Queue:
     def __init__(self) -> None:
@@ -8,6 +11,8 @@ class Queue:
         self._current_index: Optional[int] = None
         self._repeat: bool = False
         self._repeat_queue: bool = False
+        self.event_emitter = EventEmitter()
+        self.debug_print = Debuger().debug_print
 
     def set_repeat(self, repeat: bool) -> None:
         """Устанавливает флаг повторения треков."""
@@ -26,7 +31,7 @@ class Queue:
         if 0 <= index < len(self._queue):
             return self._queue.pop(index)
         return None
-    
+
     def add_track(self, track: Any) -> None:
         """Добавляет трек в конец очереди."""
         self._queue.append(track)
@@ -55,7 +60,7 @@ class Queue:
                 return self._queue[self._current_index]
         return None
 
-    def get_queue(self) -> List[Any]:
+    def get_all_tracks(self) -> List[Any]:
         """Возвращает список всех треков в очереди."""
         return self._queue
 
@@ -66,7 +71,7 @@ class Queue:
     def is_empty(self) -> bool:
         """Проверяет, пустая ли очередь."""
         return len(self._queue) == 0
-    
+
     def clear(self) -> None:
         """Очищает очередь."""
         self._queue = []
@@ -78,7 +83,7 @@ class Queue:
     def update_current_index(self) -> None:
         """Обновляет индекс текущего трека после завершения воспроизведения."""
         if self._current_index is not None:
-            self._history.append(self._queue[self._current_index])  # Добавляем трек в историю
+            self._history.append(self._queue[self._current_index])
             self._current_index += 1
             if self._current_index >= len(self._queue):
                 self._current_index = None
@@ -96,7 +101,8 @@ class Queue:
         if self._current_index is not None:
             unplayed_tracks = self._queue[self._current_index + 1:]
             random.shuffle(unplayed_tracks)
-            self._queue = self._queue[:self._current_index + 1] + unplayed_tracks
+            self._queue = self._queue[:self._current_index +
+                                      1] + unplayed_tracks
 
     def get_next_track(self) -> Optional[Any]:
         """Возвращает следующий трек после текущего или повторяет текущий/очередь."""
@@ -113,9 +119,9 @@ class Queue:
 
     def __len__(self) -> int:
         return len(self._queue)
-    
+
     def __iter__(self) -> Iterable:
         return iter(self._queue)
-    
+
     def __getitem__(self, index: int) -> Any:
         return self._queue[index]

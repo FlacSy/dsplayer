@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any
 from dsplayer.engines_system.engine_interface import EngineInterface
 
+
 class PluginInterface(ABC):
     @abstractmethod
     def on_plugin_load(self) -> None:
@@ -19,7 +20,8 @@ class PluginInterface(ABC):
         pass
 
     @abstractmethod
-    def search(self, data: str, engine: EngineInterface) -> list[Dict[str, Any]]:
+    def search(self, data: str,
+               engine: EngineInterface) -> list[Dict[str, Any]]:
         """Ищет трек по запросу или url и возвращает информацию о треке"""
         pass
 

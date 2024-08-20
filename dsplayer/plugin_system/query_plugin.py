@@ -40,7 +40,7 @@ class QueryPlugin(PluginInterface):
         self.debug_print(f"Updating settings: {settings}")
         self.settings.update(settings)
 
-    async def search(self, data: str, engine: EngineInterface) -> List[Dict[str, Any]]:
+    async def search(self, data: str, engine: EngineInterface):
         self.debug_print(f"Searching with data: {data}")
         url = engine.get_url_by_query(data)
         track_info_list = await self._search_by_url(url)
@@ -66,7 +66,8 @@ class QueryPlugin(PluginInterface):
             stdout, stderr = await proc.communicate()
 
             if proc.returncode != 0:
-                raise RuntimeError(f"yt-dlp failed with return code {proc.returncode}: {stderr.decode()}")
+                raise RuntimeError(
+                    f"yt-dlp failed with return code {proc.returncode}: {stderr.decode()}")
 
             info = json.loads(stdout.decode())
             track_info_list = []

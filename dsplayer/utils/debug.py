@@ -4,6 +4,7 @@ from colorama import Fore, Style, init
 
 init(autoreset=True)
 
+
 class Debuger:
     def __init__(self, debug: bool = False):
         self.debug = debug
@@ -13,11 +14,11 @@ class Debuger:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S") if show_time else ""
             frame = inspect.currentframe().f_back
             location = f"{frame.f_code.co_filename}:{frame.f_lineno}" if show_location else ""
-            
+
             timestamp_color = Fore.GREEN
             location_color = Fore.MAGENTA
             message_color = Fore.CYAN
-            
+
             formatted_message = (
                 f"{timestamp_color}[{timestamp}]" if show_time else ""
             ) + (

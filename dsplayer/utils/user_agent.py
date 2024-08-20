@@ -1,5 +1,6 @@
 import random
 
+
 def get_random_user_agent() -> str:
     user_agents = [
         "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_3_0; en-US) AppleWebKit/603.6 (KHTML, like Gecko) Chrome/51.0.1027.121 Safari/534",

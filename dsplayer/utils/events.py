@@ -1,12 +1,19 @@
 import asyncio
 
+
 class EventEmitter:
     def __init__(self):
         self.events = {}
 
     def event(self, name):
         def decorator(func):
-            self.events.setdefault(name, []).append(func)
+            if hasattr(func, '__self__'):
+                cls = func.__self__.__class__
+                if not hasattr(cls, '_event_emitter'):
+                    cls._event_emitter = EventEmitter()
+                cls._event_emitter.event(name)(func)
+            else:
+                self.events.setdefault(name, []).append(func)
             return func
         return decorator
 
@@ -18,4 +25,12 @@ class EventEmitter:
             else:
                 handler(*args, **kwargs)
 
+
 event_emitter = EventEmitter()
+
+
+def event(name):
+    def decorator(func):
+        event_emitter.event(name)(func)
+        return func
+    return decorator

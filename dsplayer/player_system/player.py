@@ -1,7 +1,6 @@
 import re
-import disnake
 import asyncio
-from disnake.ext import commands
+from dsplayer.utils.compat import discord_lib, commands
 from dsplayer.player_system.queue import Queue
 from dsplayer.plugin_system.plugin_loader import PluginLoader
 from dsplayer.utils.lib_exceptions import TrackNotFound, TrackError
@@ -10,8 +9,19 @@ from dsplayer.engines.ytmusic import YTMusicSearchEngine
 from dsplayer.utils.events import event_emitter
 from dsplayer.utils.debug import Debuger
 
+
 class Player:
-    def __init__(self, voice_id: int, text_id: int, bot: commands.Bot, plugin_loader: PluginLoader = PluginLoader(), volume: float = 1.0, FFMPEG_OPTIONS: dict = {}, deaf: bool = True, engine: EngineInterface = YTMusicSearchEngine, debug: bool = False):
+    def __init__(
+            self,
+            voice_id: int,
+            text_id: int,
+            bot: commands.Bot,
+            plugin_loader: PluginLoader = PluginLoader(),
+            volume: float = 1.0,
+            FFMPEG_OPTIONS: dict = {},
+            deaf: bool = True,
+            engine: EngineInterface = YTMusicSearchEngine,
+            debug: bool = False):
         """
         Инициализирует объект Player с необходимыми атрибутами.
 
@@ -29,8 +39,8 @@ class Player:
         self.plugin_loader = plugin_loader
         self.voice_channel = bot.get_channel(voice_id)
         self.text_id = text_id
-        self.voice_client = None
-        self.FFMPEG_OPTIONS = FFMPEG_OPTIONS 
+        self.voice_client: discord_lib.VoiceClient = None
+        self.FFMPEG_OPTIONS = FFMPEG_OPTIONS
         self.bot = bot
         self.deaf = deaf
         self.engine = engine
@@ -38,7 +48,7 @@ class Player:
         self.debug_print = Debuger(self.debug).debug_print
         self.volume = volume
 
-        event_emitter.emit("on_init", {
+        event_data = {
             "voice_channel": self.voice_channel,
             "text_id": self.text_id,
             "volume": self.volume,
@@ -46,14 +56,17 @@ class Player:
             "deaf": self.deaf,
             "engine": self.engine,
             "debug": self.debug
-        })
+        }
+
+        event_emitter.emit("on_init", event_data=event_data)
 
     async def connect(self):
         """
         Подключает бота к голосовому каналу. Если бот уже подключен к другому каналу, он переподключиться на другой голосовой канал.
         """
         if self.voice_client is None or not self.voice_client.is_connected():
-            self.debug_print(f"Connecting to voice channel: {self.voice_channel}")
+            self.debug_print(
+                f"Connecting to voice channel: {self.voice_channel}")
             self.voice_client = await self.voice_channel.connect()
             if self.deaf:
                 await self.voice_client.guild.change_voice_state(channel=self.voice_client.channel, self_deaf=True)
@@ -63,40 +76,42 @@ class Player:
             if self.deaf:
                 await self.voice_client.guild.change_voice_state(channel=self.voice_client.channel, self_deaf=True)
 
-        event_emitter.emit("on_connect", {
+        event_data = {
             "voice_client": self.voice_client,
             "text_id": self.text_id,
             "voice_channel": self.voice_channel
-        })
+        }
+        event_emitter.emit("on_connect", event_data=event_data)
 
     async def disconnect(self):
         """
-        Отключает бота от голосового канала и устанавливает для голосового клиента значение None.  
+        Отключает бота от голосового канала и устанавливает для голосового клиента значение None.
         """
         if self.voice_client is not None:
             self.debug_print("Disconnecting from voice channel")
             await self.voice_client.disconnect()
             self.voice_client = None
-
-            event_emitter.emit("on_disconnect", {
+            event_data = {
                 "voice_client": self.voice_client,
                 "text_id": self.text_id,
                 "voice_channel": self.voice_channel
-            })
+            }
+            event_emitter.emit("on_disconnect", event_data=event_data)
 
     async def stop(self):
         """
-        Останавливает воспроизведение текущего тркека и очищает очередь. 
+        Останавливает воспроизведение текущего тркека и очищает очередь.
         """
         if self.voice_client is not None:
             self.debug_print("Stopping playback and clearing the queue")
             self.voice_client.stop()
             self.queue.clear()
-            event_emitter.emit("on_stop", {
+            event_data = {
                 "queue": self.queue.get_all_tracks(),
                 "text_id": self.text_id,
                 "voice_client": self.voice_client
-            })
+            }
+            event_emitter.emit("on_stop", event_data=event_data)
             await self.disconnect()
 
     async def pause(self):
@@ -105,11 +120,12 @@ class Player:
         """
         if self.voice_client is not None:
             self.voice_client.pause()
-            event_emitter.emit("on_pause", {
+            event_data = {
                 "queue": self.queue.get_all_tracks(),
                 "text_id": self.text_id,
                 "voice_client": self.voice_client
-            })
+            }
+            event_emitter.emit("on_pause", event_data=event_data)
 
     async def resume(self):
         """
@@ -117,11 +133,12 @@ class Player:
         """
         if self.voice_client is not None:
             self.voice_client.resume()
-            event_emitter.emit("on_resume", {
+            event_data = {
                 "queue": self.queue.get_all_tracks(),
                 "text_id": self.text_id,
                 "voice_client": self.voice_client
-            })
+            }
+            event_emitter.emit("on_resume", event_data=event_data)
 
     async def skip(self):
         """
@@ -131,17 +148,19 @@ class Player:
             self.debug_print("Skipping current track")
             self.voice_client.stop()
             await self._play_next()
-            event_emitter.emit("on_skip", {
+            event_data = {
                 "queue": self.queue.get_all_tracks(),
                 "text_id": self.text_id,
                 "voice_client": self.voice_client
-            })
+            }
+            event_emitter.emit("on_skip", event_data=event_data)
         else:
             self.debug_print("No track is currently playing")
-            event_emitter.emit("on_error", {
+            event_data = {
                 "error": "No track is currently playing to skip",
                 "text_id": self.text_id
-            })
+            }
+            event_emitter.emit("on_error", event_data=event_data)
             raise TrackError("No track is currently playing to skip")
 
     async def previous(self):
@@ -152,11 +171,12 @@ class Player:
             self.debug_print("Returning to the previous track")
             self.voice_client.stop()
             await self._play_previous()
-            event_emitter.emit("on_previous", {
+            event_data = {
                 "queue": self.queue.get_all_tracks(),
                 "text_id": self.text_id,
                 "voice_client": self.voice_client
-            })
+            }
+            event_emitter.emit("on_previous", event_data=event_data)
         else:
             self.debug_print("No track is currently playing")
             event_emitter.emit("on_error", {
@@ -172,12 +192,14 @@ class Player:
         :param volume: Уровень громкости, который необходимо установить.
         """
         if self.voice_client is not None and self.voice_client.source is not None:
-            self.voice_client.source = disnake.PCMVolumeTransformer(self.voice_client.source, volume)
-            event_emitter.emit("on_volume_change", {
+            self.voice_client.source = discord_lib.PCMVolumeTransformer(
+                self.voice_client.source, volume)
+            event_data = {
                 "volume": volume,
                 "text_id": self.text_id,
                 "voice_client": self.voice_client
-            })
+            }
+            event_emitter.emit("on_volume_change", event_data=event_data)
 
     def update_plugin_settings(self, plugin_name: str, settings: dict) -> bool:
         """
@@ -187,7 +209,8 @@ class Player:
         :param settings: Словарь, содержащий настройки для обновления.
         :return: True, если настройки были успешно обновлены, False в противном случае.
         """
-        result = self.plugin_loader.update_plugin_settings(plugin_name, settings)
+        result = self.plugin_loader.update_plugin_settings(
+            plugin_name, settings)
         event_emitter.emit("on_update_plugin_settings", {
             "plugin_name": plugin_name,
             "settings": settings,
@@ -216,23 +239,38 @@ class Player:
 
                 if not self.voice_client.is_playing():
                     self.debug_print(f"Playing track: {track}")
-                    event_emitter.emit("on_play_track", {
+                    event_data = {
                         "track": track,
                         "text_id": self.text_id,
                         "voice_client": self.voice_client
-                    })
+                    }
+                    event_emitter.emit("on_play_track", event_data=event_data)
+
                     self.debug_print("Event is emitted")
-                    audio_source = disnake.FFmpegPCMAudio(track['url'], **self.FFMPEG_OPTIONS)
-                    
+
+                    try:
+                        audio_source = discord_lib.FFmpegPCMAudio(
+                            track['url'], **self.FFMPEG_OPTIONS)
+                    except BaseException:
+                        try:
+                            audio_source = discord_lib.FFmpegPCMAudio(
+                                track.get('url'), **self.FFMPEG_OPTIONS)
+                        except BaseException:
+                            audio_source = None
+
                     if audio_source:
-                        self.debug_print(f"Audio source created: {audio_source}")
-                        self.voice_client.play(audio_source, after=lambda e: self._track_ended(e))
+                        self.debug_print(
+                            f"Audio source created: {audio_source}")
+                        loop = asyncio.get_event_loop()
+                        self.voice_client.play(
+                            audio_source, after=lambda e: loop.call_soon_threadsafe(
+                                asyncio.create_task, self._track_ended(e)))
                         await self.set_volume(self.volume)
                         self.debug_print("Play command sent")
                         self.queue.update_current_index()
                     else:
                         self.debug_print("Failed to create audio source.")
-                        
+
                 else:
                     self.debug_print(f"Queueing track: {track}")
                     self.queue.add_track(track)
@@ -251,31 +289,34 @@ class Player:
 
     async def play(self, url_or_query: str):
         """
-        Воспроизводит трек. 
+        Воспроизводит трек.
 
-        :param url_or_query: URL или текст для поиска трека. 
+        :param url_or_query: URL или текст для поиска трека.
         """
-        self.debug_print(f"Searching for track with URL or query: {url_or_query}")
+        self.debug_print(
+            f"Searching for track with URL or query: {url_or_query}")
         plugins = self.plugin_loader.get_plugins()
         if self.debug:
             self.plugin_loader.debug()
 
         track_found = False
-        
+
         if url_or_query.startswith('http'):
-            for plugin in plugins:    
+            for plugin in plugins:
                 patterns = plugin.get_url_patterns()
                 for pattern in patterns:
                     if re.search(pattern, url_or_query):
                         try:
                             if self.debug:
                                 plugin.debug()
-                            track_generator = plugin.search(data=url_or_query, engine=self.engine)
+                            track_generator = plugin.search(
+                                data=url_or_query, engine=self.engine)
                             async for track_info in track_generator:
                                 if not track_found:
-                                    self.debug_print(f"Adding first track: {track_info}")
+                                    self.debug_print(
+                                        f"Adding first track: {track_info}")
                                     self.queue.add_track(track_info)
-                                    await self._play_next()
+                                    await self._play_track(track_info)
                                     track_found = True
                                 else:
                                     self.queue.add_track(track_info)
@@ -283,38 +324,45 @@ class Player:
                             if track_found:
                                 return
                         except Exception as e:
-                            self.debug_print(f"Error finding track info with plugin: {plugin.get_plugin_name()} \n{e}")
+                            self.debug_print(
+                                f"Error finding track info with plugin: {plugin.get_plugin_name()} \n{e}")
                             event_emitter.emit("on_error", {
-                                "error": str(error),
+                                "error": str(e),
                                 "text_id": self.text_id
                             })
+        else:
+            print(plugins)
+            for plugin in plugins:
+                print(plugin)
+                if plugin.__class__.__name__ == 'QueryPlugin':
+                    try:
+                        if self.debug:
+                            plugin.debug()
+                        track_generator = plugin.search(
+                            data=url_or_query, engine=self.engine)
+                        async for track_info in track_generator:
+                            if not track_found:
+                                self.debug_print(
+                                    f"Adding first track: {track_info}")
+                                self.queue.add_track(track_info)
+                                await self._play_track(track_info)
+                                track_found = True
+                            else:
+                                self.queue.add_track(track_info)
 
-        for plugin in plugins:
-            if plugin.__class__.__name__ == 'QueryPlugin':
-                try:
-                    if self.debug:
-                        plugin.debug()
-                    track_generator = plugin.search(data=url_or_query, engine=self.engine)
-                    async for track_info in track_generator:
-                        if not track_found:
-                            self.debug_print(f"Adding first track: {track_info}")
-                            self.queue.add_track(track_info)
-                            await self._play_next()
-                            track_found = True
-                        else:
-                            self.queue.add_track(track_info)
-
-                    if track_found:
-                        return
-                except Exception as e:
-                    self.debug_print(f"Error finding track info with plugin: {plugin.get_plugin_name()} \n{e}")
-                    event_emitter.emit("on_error", {
-                        "error": str(error),
-                        "text_id": self.text_id
-                    })
-
-        if not track_found:
-            raise TrackNotFound(f"No suitable plugin found to handle the provided data")
+                        if track_found:
+                            return
+                    except Exception as e:
+                        self.debug_print(
+                            f"Error finding track info with plugin: {plugin.get_plugin_name()} \n{e}")
+                        event_emitter.emit("on_error", {
+                            "error": str(e),
+                            "text_id": self.text_id
+                        })
+            else:
+                if not track_found:
+                    raise TrackNotFound(
+                        f"No suitable plugin found to handle the provided data or track not played")
 
     async def _play_track_from_queue(self):
         if self.voice_client and self.voice_client.is_playing() and not self.queue.is_empty():
@@ -340,7 +388,7 @@ class Player:
         Воспроизводит следующий трек в очереди.
         """
         self.debug_print("Getting next track from queue")
-        next_track = self.queue.get_first()
+        next_track = self.queue.get_next_track()
         if next_track:
             await self._play_track(next_track)
         else:
