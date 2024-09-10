@@ -1,6 +1,4 @@
 # Документация
----
-
 
 ## Навигация
 
@@ -8,43 +6,44 @@
   - [Описание](#описание)
   - [Установка](#установка)
   - [Player](#player)
-    - [Player Атрибуты](#player-attributes)
-    - [Player Методы](#player-methods)
+    - [Атрибуты Player](#атрибуты-player)
+    - [Методы Player](#методы-player)
   - [Queue](#queue)
-    - [Queue Атрибуты](#queue-attributes)
-    - [Queue Методы](#queue-methods)
+    - [Атрибуты Queue](#атрибуты-queue)
+    - [Методы Queue](#методы-queue)
   - [PluginLoader](#pluginloader)
-    - [PluginLoader Атрибуты](#pluginloader-attributes)
-    - [PluginLoader Методы](#pluginloader-methods)
+    - [Атрибуты PluginLoader](#атрибуты-pluginloader)
+    - [Методы PluginLoader](#методы-pluginloader)
   - [Плагины](#плагины)
   - [Поисковые движки](#поисковые-движки)
   - [Список событий](#список-событий)
   - [Примеры использования](#примеры-использования)
 
-
 ## Для пользователей библиотеки
 
 ### Описание
 
-`dsplayer` - это библиотека для Discord ботов. Она позволяет подключаться к голосовым каналам, воспроизводить треки и управлять очередью воспроизведения. Также она имеет плагины, которые способны расширить количество платформ.
+`dsplayer` — это библиотека для Discord-ботов, которая позволяет подключаться к голосовым каналам, воспроизводить треки и управлять очередью воспроизведения. Библиотека также поддерживает плагины, расширяющие количество платформ для воспроизведения.
 
-`dsplayer` может работать с такими библиотеками как disnake, discord.py, nextcord
+`dsplayer` совместим с такими библиотеками, как disnake, discord.py, и nextcord.
 
 ### Установка
 
-Установить библиотеку с помощью pip из PyPi:
+Установите библиотеку с помощью pip из PyPi:
 
 ```bash
 pip install dsplayer
 ```
 
-Еще можно установить библиотеку с помощью pip из GitHub:
+Или установите последнюю версию с GitHub:
+
 ```bash
 pip install git+https://github.com/FlacSy/dsplayer
 ```
 
-Преймущества установки через PyPi это стабильность, на GitHub выкладываються последние изменения
+**Примечание:** Установка через PyPi обеспечивает стабильность, тогда как на GitHub можно получить последние изменения.
 
+--- 
 
 ### Класс `Player`
 - **Player Attributes:**
@@ -386,6 +385,7 @@ except TrackError as e:
 
 ### Примеры использования
 
+### Использование `Player` и `Queue`
 #### Пример 1: Подключение и воспроизведение трека
 
 В этом примере показано, как подключиться к голосовому каналу и начать воспроизведение трека:
@@ -488,24 +488,59 @@ bot.run('YOUR_BOT_TOKEN')
 ```python
 import disnake
 from disnake.ext import commands
-from dsplayer import Player, event_emitter
+from dsplayer import Player, event
 
 intents = disnake.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 players = {}
 
-@event_emitter.event("on_play_track")
+@event("on_play_track")
 async def on_play_track(event_data: dict):
     """Отправляет сообщение, когда начинается воспроизведение трека."""
     track = track_info['track']
     channel_id = event_data['text_id']
     channel = bot.get_channel(channel_id)
-    await channel.send(f"Начинается воспроизведение трека: {track['url']}")
+    await channel.send(f"Начинается воспроизведение трека: {track['title']}")
 
 
 bot.run('YOUR_BOT_TOKEN')
 ```
+
+### `PluginLoader`
+
+#### 1. Загрузка плагинов из деректории
+
+```python
+from dsplayer import PluginLoader
+
+
+plugins_list = ["custom_plugins.plugins"]
+loader = PluginLoader(plugins)
+
+```
+
+#### 2. Загрузка плагинов используя класс 
+
+```python
+from dsplayer import PluginLoader
+from dsplayer import PluginInterface
+
+
+loader = PluginLoader()
+loader.load_plugins_from_classes(plugins_list)
+
+class MyCastomPlugin1(PluginInterface):
+    ...
+
+class MyCastomPlugin2(PluginInterface):
+    ...
+
+plugins_list = [MyCastomPlugin1, MyCastomPlugin2]
+
+```
+
+**Пример бота можно найти в [***examples/example_bot.py***](examples/example_bot.py)**
 
 ## Для разработчиков библиотеки и плагинов
 

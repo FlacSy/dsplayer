@@ -117,6 +117,12 @@ class Queue:
                 return self._queue[self._current_index]
         return None
 
+    def inject_track(self, track: Any):
+        """Встраивает трек в очередь сразу полсе текущего."""
+        if self._current_index is not None:
+            self._queue.insert(self._current_index+1, track)
+        return self._queue
+
     def __len__(self) -> int:
         return len(self._queue)
 

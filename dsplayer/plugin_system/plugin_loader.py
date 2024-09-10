@@ -7,9 +7,8 @@ from dsplayer.utils.debug import Debuger
 
 
 class PluginLoader:
-    def __init__(self, plugin_packages: List[str] = [
-                 'dsplayer.plugin_system']):
-        self.plugin_packages = plugin_packages
+    def __init__(self, plugin_packages: List[str] = []):
+        self.plugin_packages = plugin_packages.append('dsplayer.plugin_system')
         self.plugin_classes: List[Type[PluginInterface]] = []
         self.plugins: List[PluginInterface] = []
         self.debug_mode = False
