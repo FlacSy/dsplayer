@@ -26,6 +26,12 @@ class Queue:
         """Возвращает индекс текущего трека."""
         return self._current_index
 
+    def get_current_track(self) -> Optional[Any]:
+        """Возвращает текущий трек."""
+        if self._current_index is not None:
+            return self._queue[self._current_index]
+        return None
+
     def remove_track(self, index: int) -> Optional[Any]:
         """Удаляет трек из очереди по индексу и возвращает его, если индекс корректен."""
         if 0 <= index < len(self._queue):

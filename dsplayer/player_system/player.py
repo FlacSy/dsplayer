@@ -15,7 +15,7 @@ class Player:
             self,
             voice_id: int,
             text_id: int,
-            inter: commands.inter,
+            inter,
             plugin_loader: PluginLoader = PluginLoader(),
             volume: float = 1.0,
             FFMPEG_OPTIONS: dict = {},
@@ -27,7 +27,6 @@ class Player:
 
         :param voice_id: ID голосового канала.
         :param text_id: ID текстового канала.
-        :param inter: Интерация плеера.
         :param plugin_loader: Экземпляр PluginLoader для работы с плагинами.
         :param volume: Начальный уровень громкости.
         :param FFMPEG_OPTIONS: Параметры для FFMPEG.
@@ -37,11 +36,10 @@ class Player:
         """
         self.queue = Queue()
         self.plugin_loader = plugin_loader
-        self.voice_channel = inter.get_channel(voice_id)
+        self.voice_channel = inter.guild.get_channel(voice_id)
         self.text_id = text_id
         self.voice_client: discord_lib.VoiceClient = None
         self.FFMPEG_OPTIONS = FFMPEG_OPTIONS
-        self.inter = inter
         self.deaf = deaf
         self.engine = engine
         self.debug = debug
@@ -56,7 +54,6 @@ class Player:
             "deaf": self.deaf,
             "engine": self.engine,
             "debug": self.debug,
-            "inter": self.inter
         }
 
         event_emitter.emit("on_init", event_data=event_data)
@@ -87,7 +84,7 @@ class Player:
             "voice_client": self.voice_client,
             "text_id": self.text_id,
             "voice_channel": self.voice_channel,
-            "inter": self.inter
+
         }
         event_emitter.emit("on_connect", event_data=event_data)
 
@@ -103,7 +100,7 @@ class Player:
                 "voice_client": self.voice_client,
                 "text_id": self.text_id,
                 "voice_channel": self.voice_channel,
-                "inter": self.inter
+    
             }
             event_emitter.emit("on_disconnect", event_data=event_data)
 
@@ -119,7 +116,7 @@ class Player:
                 "queue": self.queue.get_all_tracks(),
                 "text_id": self.text_id,
                 "voice_client": self.voice_client,
-                "inter": self.inter
+    
             }
             event_emitter.emit("on_stop", event_data=event_data)
             await self.disconnect()
@@ -134,7 +131,7 @@ class Player:
                 "queue": self.queue.get_all_tracks(),
                 "text_id": self.text_id,
                 "voice_client": self.voice_client,
-                "inter": self.inter
+    
             }
             event_emitter.emit("on_pause", event_data=event_data)
 
@@ -148,7 +145,7 @@ class Player:
                 "queue": self.queue.get_all_tracks(),
                 "text_id": self.text_id,
                 "voice_client": self.voice_client,
-                "inter": self.inter
+    
             }
             event_emitter.emit("on_resume", event_data=event_data)
 
@@ -164,7 +161,7 @@ class Player:
                 "queue": self.queue.get_all_tracks(),
                 "text_id": self.text_id,
                 "voice_client": self.voice_client,
-                "inter": self.inter
+    
             }
             event_emitter.emit("on_skip", event_data=event_data)
         else:
@@ -172,7 +169,7 @@ class Player:
             event_data = {
                 "error": "No track is currently playing to skip",
                 "text_id": self.text_id,
-                "inter": self.inter
+    
             }
             event_emitter.emit("on_error", event_data=event_data)
             raise TrackError("No track is currently playing to skip")
@@ -189,7 +186,7 @@ class Player:
                 "queue": self.queue.get_all_tracks(),
                 "text_id": self.text_id,
                 "voice_client": self.voice_client,
-                "inter": self.inter
+    
             }
             event_emitter.emit("on_previous", event_data=event_data)
         else:
@@ -197,7 +194,7 @@ class Player:
             event_emitter.emit("on_error", {
                 "error": "No track is currently playing to skip",
                 "text_id": self.text_id,
-                "inter": self.inter
+    
             })
             raise TrackError("No track is currently playing to skip")
 
@@ -214,7 +211,7 @@ class Player:
                 "volume": volume,
                 "text_id": self.text_id,
                 "voice_client": self.voice_client,
-                "inter": self.inter
+    
             }
             event_emitter.emit("on_volume_change", event_data=event_data)
 
@@ -233,7 +230,7 @@ class Player:
             "settings": settings,
             "result": result,
             "text_id": self.text_id,
-            "inter": self.inter
+
         })
         return result
 
@@ -261,7 +258,7 @@ class Player:
                         "track": track,
                         "text_id": self.text_id,
                         "voice_client": self.voice_client,
-                        "inter": self.inter
+            
                     }
                     event_emitter.emit("on_play_track", event_data=event_data)
 
@@ -297,14 +294,14 @@ class Player:
                         "track": track,
                         "text_id": self.text_id,
                         "queue": self.queue.get_all_tracks(),
-                        "inter": self.inter
+            
                     })
             except Exception as e:
                 self.debug_print(f"Error playing track: {e}")
                 event_emitter.emit("on_error", {
                     "error": str(e),
                     "text_id": self.text_id,
-                    "inter": self.inter
+        
                 })
                 raise TrackError(f"Error playing track: {e}")
 
@@ -350,7 +347,7 @@ class Player:
                             event_emitter.emit("on_error", {
                                 "error": str(e),
                                 "text_id": self.text_id,
-                                "inter": self.inter
+                    
                             })
         else:
             for plugin in plugins:
@@ -378,7 +375,7 @@ class Player:
                         event_emitter.emit("on_error", {
                             "error": str(e),
                             "text_id": self.text_id,
-                            "inter": self.inter
+                
                         })
             else:
                 if not track_found:
@@ -399,7 +396,7 @@ class Player:
             event_emitter.emit("on_error", {
                 "error": str(error),
                 "text_id": self.text_id,
-                "inter": self.inter
+    
             })
         else:
             self.debug_print("Track ended successfully")
@@ -418,7 +415,7 @@ class Player:
             event_emitter.emit("on_queue_empty", {
                 "text_id": self.text_id,
                 "queue": self.queue.get_all_tracks(),
-                "inter": self.inter
+    
             })
             await self.disconnect()
 
@@ -435,7 +432,7 @@ class Player:
             event_emitter.emit("on_queue_empty", {
                 "text_id": self.text_id,
                 "queue": self.queue.get_all_tracks(),
-                "inter": self.inter
+    
             })
             await self.disconnect()
 
@@ -452,6 +449,6 @@ class Player:
             event_emitter.emit("on_queue_empty", {
                 "text_id": self.text_id,
                 "queue": self.queue.get_all_tracks(),
-                "inter": self.inter
+    
             })
             await self.disconnect()
