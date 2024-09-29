@@ -1,6 +1,6 @@
 import re
 import asyncio
-from dsplayer.utils.compat import discord_lib, commands
+from dsplayer.utils.compat import discord_lib
 from dsplayer.player_system.queue import Queue
 from dsplayer.plugin_system.plugin_loader import PluginLoader
 from dsplayer.utils.lib_exceptions import TrackNotFound, TrackError
@@ -16,12 +16,13 @@ class Player:
             voice_id: int,
             text_id: int,
             inter,
-            plugin_loader: PluginLoader = PluginLoader(),
+            plugin_loader: PluginLoader | None,
             volume: float = 1.0,
             FFMPEG_OPTIONS: dict = {},
             deaf: bool = True,
             engine: EngineInterface = YTMusicSearchEngine,
-            debug: bool = False):
+            debug: bool = False,
+            queue: Queue = Queue()):
         """
         Инициализирует объект Player с необходимыми атрибутами.
 
@@ -32,9 +33,14 @@ class Player:
         :param FFMPEG_OPTIONS: Параметры для FFMPEG.
         :param deaf: Глушить ли бота при подключенииы.
         :param engine: Движок, используемый для поиска треков.
-        :param debug: Включить или отключить отладку
+        :param debug: Включить или отключить отладку.
+        :param queue: Экземпляр Queue для работы с очередью треков.
         """
-        self.queue = Queue()
+        if plugin_loader is None:
+            self.plugin_loader = PluginLoader()
+        else:
+            self.plugin_loader = plugin_loader
+        self.queue = queue
         self.plugin_loader = plugin_loader
         self.voice_channel = inter.guild.get_channel(voice_id)
         self.text_id = text_id
@@ -45,6 +51,7 @@ class Player:
         self.debug = debug
         self.debug_print = Debuger(self.debug).debug_print
         self.volume = volume
+        self._load_addons_metods()
 
         event_data = {
             "voice_channel": self.voice_channel,
@@ -57,7 +64,7 @@ class Player:
         }
 
         event_emitter.emit("on_init", event_data=event_data)
-
+        
     def get_player(self):
         """
         Возвращает объект Player.
@@ -305,15 +312,32 @@ class Player:
                 })
                 raise TrackError(f"Error playing track: {e}")
 
-    async def play(self, url_or_query: str):
+    async def play(self, url_or_query: str, timeout: int = 15):
         """
         Воспроизводит трек.
 
         :param url_or_query: URL или текст для поиска трека.
+        :param timeout: Максимальное время ожидания добавления трека в очередь.
+        :return: Информация о добавленном треке.
+        :raises TimeoutError: Если трек не был добавлен в очередь за указанный таймаут.
+        :raises TrackError: Если при воспроизведении трека произошла ошибка.
         """
+        await self._play(url_or_query)
+        start_time = asyncio.get_event_loop().time()
+        if timeout is not None and timeout > 0:
+            while self.queue.get_last() is None:
+                await asyncio.sleep(0.1)
+                if asyncio.get_event_loop().time() - start_time > timeout:
+                    raise TimeoutError("Не удалось добавить трек в очередь за отведённое время.")
+            
+            return self.queue.get_last()
+        else:
+            raise ValueError("Недопустимое значение тайм-аута. Тайм-аут должен быть больше 1 или None.")
+            
+    async def _play(self, url_or_query: str):
         self.debug_print(
             f"Searching for track with URL or query: {url_or_query}")
-        plugins = self.plugin_loader.get_plugins()
+        plugins = self.plugin_loader.get_extractor_plugins()
         if self.debug:
             self.plugin_loader.debug()
 
@@ -452,3 +476,11 @@ class Player:
     
             })
             await self.disconnect()
+
+    def _load_addons_metods(self):
+        for addon in self.plugin_loader.addon_plugins:
+            for name in dir(addon):  # Перебираем все атрибуты объекта
+                method = getattr(addon, name)  # Получаем атрибут по имени
+                if callable(method) and not name.startswith("__"):  # Проверяем, что это метод и не магический
+                    self.debug_print(f"Loading addon method: {name}")
+                    setattr(self, name, method)

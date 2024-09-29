@@ -20,12 +20,14 @@ class PluginInterface(ABC):
         pass
 
     @abstractmethod
-    def search(self, data: str,
-               engine: EngineInterface) -> list[Dict[str, Any]]:
+    def get_plugin_type(self) -> str:
+        """Возвращает тип плагина"""
+        pass
+
+    def search(self, data: str, engine: EngineInterface) -> list[Dict[str, Any]]:
         """Ищет трек по запросу или url и возвращает информацию о треке"""
         pass
 
-    @abstractmethod
     def get_url_patterns(self) -> list:
         """Возвращает список паттернов для url"""
         pass
