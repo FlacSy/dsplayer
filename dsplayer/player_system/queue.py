@@ -56,16 +56,6 @@ class Queue:
             return self._queue[0]
         return None
 
-    def get_next_track(self) -> Optional[Any]:
-        """Возвращает следующий трек после текущего или повторяет текущий трек."""
-        if self._current_index is not None:
-            if self._repeat:
-                return self._queue[self._current_index]
-            elif 0 <= self._current_index + 1 < len(self._queue):
-                self.update_current_index()
-                return self._queue[self._current_index]
-        return None
-
     def get_all_tracks(self) -> List[Any]:
         """Возвращает список всех треков в очереди."""
         return self._queue

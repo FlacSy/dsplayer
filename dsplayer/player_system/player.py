@@ -479,8 +479,8 @@ class Player:
 
     def _load_addons_metods(self):
         for addon in self.plugin_loader.addon_plugins:
-            for name in dir(addon):  # Перебираем все атрибуты объекта
-                method = getattr(addon, name)  # Получаем атрибут по имени
-                if callable(method) and not name.startswith("__"):  # Проверяем, что это метод и не магический
+            for name in dir(addon):
+                method = getattr(addon, name)
+                if callable(method) and not name.startswith("__"):
                     self.debug_print(f"Loading addon method: {name}")
                     setattr(self, name, method)

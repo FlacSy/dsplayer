@@ -1,6 +1,9 @@
 import asyncio
 import json
 from typing import Dict, Any, List
+
+from eel import start
+from numpy import source
 from dsplayer.plugin_system.plugin_interface import PluginInterface
 from dsplayer.engines_system.engine_interface import EngineInterface
 from dsplayer.utils.debug import Debuger
@@ -46,8 +49,10 @@ class QueryPlugin(PluginInterface):
     async def search(self, data: str, engine: EngineInterface):
         self.debug_print(f"Searching with data: {data}")
         url = engine.get_url_by_query(data)
+        source_name = 
         track_info_list = await self._search_by_url(url)
         for track_info in track_info_list:
+            track_info['source_name'] = engine.__class__.__name__
             yield track_info
 
     async def _search_by_url(self, url: str) -> List[Dict[str, Any]]:
@@ -99,5 +104,5 @@ class QueryPlugin(PluginInterface):
             'thumbnail_url': thumbnail_url,
             'title': title,
             'artist': artist,
-            'duration': duration
+            'duration': duration,
         }
