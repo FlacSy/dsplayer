@@ -113,6 +113,19 @@ class Queue:
                 return self._queue[self._current_index]
         return None
 
+    def get_previous_track(self) -> Optional[Any]:
+        """Возвращает предыдущий трек перед текущим или повторяет текущий/очередь."""
+        if self._current_index is not None:
+            if self._repeat:
+                return self._queue[self._current_index]
+            elif 0 <= self._current_index - 1 < len(self._queue):
+                self.update_current_index()
+                return self._queue[self._current_index]
+            elif self._repeat_queue:
+                self._current_index = len(self._queue) - 1
+                return self._queue[self._current_index]
+        return None
+
     def inject_track(self, track: Any):
         """Встраивает трек в очередь сразу полсе текущего."""
         if self._current_index is not None:
